@@ -99,7 +99,8 @@ else  % method of constant stimuli
         constantStim = ceil(rand(3,1)*180-90); % 3 levels
         constantStim(constantStim == 0) = 10;
     else
-        constantStim = [-90:5:-5 5:5:85]'; % 35 levels
+        constantStim = [-87.5:5:87.5]';
+        % constantStim = [-90:5:-5 5:5:85]'; % 35 levels
     end
     designMat = sort(repmat(designMat,[length(constantStim),1]));
     designMat(:,1) = designMat(:,1).*repmat(constantStim,[prefs.nCond 1]);
@@ -295,6 +296,7 @@ for itrial = 1:prefs.nTrials;
     pres2orientations = pres1orientations;
     locChange = stimuliMat(itrial,end);
     pres2orientations(locChange) = pres1orientations(locChange) + designMat(itrial,1);
+    ISI2delay = designMat(itrial,4); % delay time between intervals that transition between first and second presentations...(poorly explained)
     %     x_positions = stimuliMat(itrial,1:setSize);
     %     y_positions = stimuliMat(itrial,setSize+1:2*setSize);
     
@@ -332,31 +334,20 @@ for itrial = 1:prefs.nTrials;
     stimPerInterval = [designMat(itrial,2) setSize];
     
     % if nothing in first interval...
-    if ~(prefs.stimPresent) && (stimPerInterval(1) == 0) % simultaneous presentation
+    if ~(prefs.stimPresent) && (stimPerInterval(1) == 0) % sequential presentation & nothing in first interval
         
-        % blank screen
+        % blank screen for stimulus duration + ISI
         Screen('fillRect',windowPtr,prefs.bgColor);
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
         % fix1 = toc
         Screen('flip',windowPtr); % tic;
         t0 = GetSecs();
-        while (GetSecs()-t0)<prefs.pres1Dur;
-            % do nothing
-        end
-        
-        % blank screen within first stim pres
-        Screen('fillRect',windowPtr,prefs.bgColor);
-        drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-        % pres1 = toc
-        Screen('flip',windowPtr);
-        % tic;
-        t0 = GetSecs();
-        while (GetSecs()-t0)<prefs.pres1ISIDur;
+        while (GetSecs()-t0) < (prefs.pres1Dur + prefs.pres1ISIDur);
             % do nothing
         end
     end
     
-    % the pres 1 screens with stuff in it.
+    % the stimulus presentations
     Screen('fillRect',windowPtr,prefs.bgColor);
     if (prefs.permLocInPres1)
         k = randperm(setSize);
@@ -376,11 +367,7 @@ for itrial = 1:prefs.nTrials;
                 Screen('DrawTexture', windowPtr, StimPatches(prefs.reliabilityNum == designMat(itrial,3)), srcrect,destrect, 180-pres1orientations(k(istim)));
                 stimuliMat(itrial,k(istim)) = 2-(istim <= stimPerInterval(1));% index of which interval
         end
-        if prefs.stimPresent % simultaneous presentation
-            if (prefs.stimecc)
-                drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-            end
-        else % sequential presentation
+        if ~prefs.stimPresent % sequential presentation
             if sum(istim == stimPerInterval); % flip window when the proper number of stimuli are on the screen.
                 if (prefs.stimecc)
                     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -392,6 +379,7 @@ for itrial = 1:prefs.nTrials;
                 while (GetSecs()-t0) < prefs.pres1Dur;
                     % do nothing
                 end
+                
                 %blank screen in between
                 Screen('fillRect',windowPtr,prefs.bgColor);
                 drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -399,17 +387,40 @@ for itrial = 1:prefs.nTrials;
                 Screen('flip',windowPtr);
                 % tic;
                 t0 = GetSecs();
-                while (GetSecs()-t0) < prefs.pres1ISIDur;
-                    % do nothing
+                
+                if (istim == setSize); % if it's last interval for first presentation
+                    while (GetSecs()-t0) < ISI2delay; % ISI between first and second presentation intervals
+                        % do nothing
+                    end
+                else % if there is going to be another interval for first presentation
+                    while (GetSecs()-t0) < prefs.pres1ISIDur; % ISI between first presentation intervals
+                        % do nothing
+                    end
                 end
             end
         end
     end
-    if isempty(prefs.stimPresent)
+    
+    if prefs.stimPresent % if simultaneous presentation
+        if (prefs.stimecc)
+                drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
+        end
         Screen('flip',windowPtr);
         % tic
         t0 = GetSecs();
         while (GetSecs()-t0) < prefs.pres1Dur;
+            % do nothing
+        end
+        
+        
+        % ISI
+        Screen('fillRect',windowPtr,prefs.bgColor);
+        drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
+        % stim1 = toc
+        Screen('flip',windowPtr);
+        % tic;
+        t0 = GetSecs();
+        while (GetSecs()-t0) < ISI2delay; % ISI between first and second presentation intervals
             % do nothing
         end
     end
@@ -423,21 +434,21 @@ for itrial = 1:prefs.nTrials;
         % blank = toc
         Screen('flip',windowPtr); % tic;
         t0 = GetSecs();
-        while (GetSecs()-t0)<prefs.pres1Dur;
+        while (GetSecs()-t0) < (prefs.pres1Dur + prefs.pres1ISIDur);
             % do nothing
         end
     end
     
-    % blank screen (inter-stimulus interval)
-    Screen('fillRect',windowPtr,prefs.bgColor);
-    drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-    % stimblank2 = toc
-    Screen('flip',windowPtr); % tic
-    % tic
-    t0 = GetSecs();
-    while (GetSecs()-t0)<designMat(itrial,4);
-        % do nothing
-    end
+%     % blank screen (inter-stimulus interval)
+%     Screen('fillRect',windowPtr,prefs.bgColor);
+%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
+%     % stimblank2 = toc
+%     Screen('flip',windowPtr); % tic
+%     % tic
+%     t0 = GetSecs();
+%     while (GetSecs()-t0)<designMat(itrial,4);
+%         % do nothing
+%     end
     
     % second stimulus presentation
     Screen('fillRect',windowPtr,prefs.bgColor);
