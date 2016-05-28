@@ -110,6 +110,7 @@ designMat = [designMat nan(size(designMat,1),3)];
 prefs.nTrials = size(designMat,1);
 designMat = designMat([randperm(prefs.nTrials)],:);
 designMat = [designMat nan(prefs.nTrials,2)];
+nPC = floor(prefs.nTrials/prefs.feedbacktrial);
 
 % names of variables in designMat
 names.designMat = cell(1,8);
@@ -222,14 +223,14 @@ end
 % RUN THE EXPERIMENT
 % ========================================================================
 dy = 30;
-textx = 270;
+textx = w/2-300;
 
 if (sessionnum)
     % ====== DETECTION INFO SCREEN =======
     texty = screenCenter(2) - 200;
     Screen('TextSize',windowPtr,20);
     Screen('TextFont',windowPtr,'Helvetica');
-    Screen('DrawText',windowPtr,'Indicate which orientation changed.',textx,texty,[255 255 255]); 
+    Screen('DrawText',windowPtr,'Indicate which orientation changed.',textx,texty,[255 255 255]);
     Screen('Flip', windowPtr);
     waitForKey;
 end
@@ -237,7 +238,7 @@ end
 
 % run a trial
 % -------------------------------------------------------------------------
-fbtrial = 0;
+fbtrial = 0; progPC = [];
 for itrial = 1:prefs.nTrials;
     
     % setting values for current trial
@@ -350,7 +351,7 @@ for itrial = 1:prefs.nTrials;
     
     if prefs.stimPresent % if simultaneous presentation
         if (prefs.stimecc)
-                drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
+            drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
         end
         Screen('flip',windowPtr);
         % tic
@@ -437,9 +438,9 @@ for itrial = 1:prefs.nTrials;
     % confidence judgment
     textx = screenCenter(1) - 3*screen_ppd;
     texty = screenCenter(2) - screen_ppd;
-    Screen('TextSize',windowPtr,28);
+    Screen('TextSize',windowPtr,24);
     Screen('TextFont',windowPtr,'Helvetica');
-    Screen('DrawText',windowPtr,'Confidence?',textx,texty,[255 255 255]); 
+    Screen('DrawText',windowPtr,'Confidence?',textx,texty,[255 255 255]);
     Screen('Flip', windowPtr);
     [designMat(itrial,9), designMat(itrial,10)] = waitForKeys(prefs.keys2,GetSecs());
     
@@ -465,47 +466,58 @@ for itrial = 1:prefs.nTrials;
     
     save(prefs.fidmat)
     
-    % code for breaks/blocks
-    if ~isempty(intersect(prefs.breakpoints,itrial))|| ~mod(itrial,prefs.feedbacktrial)
+    % ======= BREAK/BLOCK SECTION =======
+    % if big block break
+    if ~isempty(intersect(prefs.breakpoints,itrial))
         Screen('fillRect',windowPtr,prefs.bgColor);
-        t0 = GetSecs();
-        Screen('flip',windowPtr);
-        while GetSecs < .5;
-            % do nothing
-        end
+        %tic
         
-        if ~isempty(intersect(prefs.breakpoints,itrial)) %break
-            Screen('fillRect',windowPtr,prefs.bgColor);
-            tic
-            
-            while toc<prefs.breakDuration
-                Screen('DrawText',windowPtr,['You have finished ' num2str(find(prefs.breakpoints == itrial)) '/' num2str(length(prefs.breakpoints)+1) ' of the trials.'],100,screenCenter(2)-80,[255 255 255]);
-                Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(prefs.breakDuration-toc)) ' seconds.'],100,screenCenter(2)-120,[255 255 255]);
-                Screen('Flip', windowPtr);
-            end
-            Screen('DrawText',windowPtr,'Press any key to continue',100,screenCenter(2)-80,prefs.white);
+        while toc<prefs.breakDuration
+            Screen('TextSize',windowPtr,20);
+            Screen('DrawText',windowPtr,['You have finished ' num2str(find(prefs.breakpoints == itrial)) '/' num2str(length(prefs.breakpoints)+1) ' of the trials.'],100,screenCenter(2)-80,[255 255 255]);
+            Screen('DrawText',windowPtr,['Please take a short break now. You can continue in ' num2str(round(prefs.breakDuration-toc)) ' seconds.'],100,screenCenter(2)-120,[255 255 255]);
             Screen('Flip', windowPtr);
-            waitForKey;
-            
-            drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-            Screen('Flip', windowPtr);
-            WaitSecs(prefs.fix1Dur);
-            
-        else  % every FEEDBACKTRIALth trial
-            progPC = round(100*mean(designMat(fbtrial+1:itrial,7)));
-            fbtrial = itrial;
-            %             progPC = mean(designMat(1:i,7));
-            
-            Screen('fillRect',windowPtr,prefs.bgColor);
-            Screen('DrawText',windowPtr,['You have earned ' num2str(progPC) ' points. Press any key to continue'],250,screenCenter(2) - 50,[255 255 255]);
-            Screen('Flip', windowPtr);
-            waitForKey;
-            
-            drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-            Screen('Flip', windowPtr);
-            WaitSecs(prefs.fix1Dur);
         end
+    end
+    
+    % if little feedback block break
+    if ~mod(itrial,prefs.feedbacktrial) % every FEEDBACKTRIALth trial
         
+        progPC = [progPC round(100*mean(designMat(fbtrial+1:itrial,7)))];
+        fbtrial = itrial;
+        %             progPC = mean(designMat(1:i,7));
+        Screen('TextSize',windowPtr,20);
+        Screen('fillRect',windowPtr,prefs.bgColor);
+        Screen('DrawText',windowPtr,['You have earned ' num2str(progPC(end)) ' points. Press any key to continue'],250,screenCenter(2)-80,[255 255 255]);
+        
+        % GRAPH OF PROGRESS
+        graphwidth = round(w/3); % half of graph width
+        graphheight = round(h/5); % half of graph height
+        origin = [w/2-graphwidth/2 h/2+graphheight];
+        Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
+        Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
+        Screen('TextSize',windowPtr,12);
+        Screen('DrawText',windowPtr,'points per block',w/2-50,origin(2)+15,[255 255 255]); % xlabel
+        
+        % draw lines to make graph
+        pc = (progPC./75 - 1/3)*graphheight; % rescaling PC to size of graph
+        dx = graphwidth./nPC; % equally spaced out to fill size of graph at end of exp.
+        og = origin;
+        dc = nan(2,length(pc));
+        dc(:,1) = [og(1),og(2)-pc(1)];
+        for ipc = 2:length(pc); % draw the lines
+            dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
+            Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
+            og(1) = og(1) + dx;
+        end
+        Screen('DrawDots',windowPtr,dc,5,255*ones(1,3),[],1)
+        
+        Screen('Flip', windowPtr);
+        waitForKey;
+        
+        drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
+        Screen('Flip', windowPtr);
+        WaitSecs(prefs.fix1Dur);
     end
     
 end

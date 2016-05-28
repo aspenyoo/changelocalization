@@ -30,11 +30,11 @@ Screen('Flip', windowPtr);
 % ========== DETECTION TASK ============
 
 switch sessionnum
-    case 1; nTrialsPerCond = 4;
-    case 2; nTrialsPerCond = 4;
-    case 3; nTrialsPerCond = 2;
-    case 4; nTrialsPerCond = 2;
-    case 98; nTrialsPerCond = 8;
+    case 1; nTrialsPerCond = 3;
+    case 2; nTrialsPerCond = 2;
+    case 3; nTrialsPerCond = 3;
+    case 4; nTrialsPerCond = 3;
+    case 98; nTrialsPerCond = 1;
 end
 
 Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond)

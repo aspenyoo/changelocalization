@@ -74,9 +74,9 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
             permLocInPres1 = 1;  % are stimuli locations in pres1 permuted?
             
             % breaks and feedback
-            blocknum = 5;     % number of blocks ( 1 + number of breaks )
+            blocknum = 6;     % number of blocks ( 1 + number of breaks )
             breakDuration = 20;   % duration of each break between blocks (sec)
-            feedbacktrial = 35; % every feedbacktrialth trial, feedback will be given
+            feedbacktrial = 24; % every feedbacktrialth trial, feedback will be given
             
             % experimental design
             deltaNum = [1]; %
