@@ -218,15 +218,6 @@ switch prefs.stimType
         end
 end
 
-% line stimuli
-%     prefs.lineArea = prefs.stimArea; % so line is same area as stimArea
-%     prefs.lineWidth = 3;%round(prefs.lineArea*.01); % pixels
-%     prefs.lineLength = stimLength;
-%     lineCoordinates = nan(2,numDegrees);
-%     for j = 1:numDegrees;
-%         [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(prefs.lineLength,j);
-%     end
-
 % ========================================================================
 % RUN THE EXPERIMENT
 % ========================================================================
@@ -243,51 +234,10 @@ if (sessionnum)
     waitForKey;
 end
 
-% % ====== BUTTON DIRECTIONS ======
-% texty = screenCenter(2) - 200;
-% if (prefs.directionChange)
-%     dirtext1 = 'The rotation can be of any magnitude. Press "y" if you think it';
-%     dirtext2 = 'rotated counterclockwise and "u" if you think it rotated clockwise.';
-% else
-%     dirtext1 = 'Press "D" if the orientations of the shapes are different';
-%     dirtext2 = 'and "S" if the orientations of the shapes are the same.';
-% end
-%
-% Screen('DrawText',windowPtr,dirtext1,textx,texty,[255 255 255]); texty = texty + dy;
-% Screen('DrawText',windowPtr,dirtext2,textx,texty,[255 255 255]); texty = texty + 4*dy;
-%
-% Screen('DrawText',windowPtr,'Remember, a change in shape does not mean a change in orientation.',textx,texty,[255 255 255]); texty = texty + 2*dy;
-%
-% [newx, newy] = Screen('DrawText',windowPtr,'These all have the same orientation:',textx,texty,[255 255 255]); texty = texty + 3*dy;
-%
-% amntchange = stimLength;
-% xCoord = newx + amntchange;
-% for itrial = 1:length(prefs.reliabilityNum);
-%
-%     switch prefs.stimType
-%         case 'ellipse'
-%             cuesrcrect = [0 0 squeeze(StimSizes(itrial,round(numDegrees/4),:))'];
-%             destrect = CenterRectOnPoint(cuesrcrect,xCoord,newy+20);
-%             Screen('drawtexture',windowPtr,StimPatches(itrial,round(numDegrees/4)),cuesrcrect,destrect,0);
-%         case 'gabor'
-%             cuesrcrect = [0 0 StimSizes];
-%             destrect = CenterRectOnPoint(cuesrcrect,xCoord,newy+20);
-%             Screen('DrawTexture', windowPtr, StimPatches(itrial), cuesrcrect, destrect,180-round(numDegrees/4)); % rotation counterclockwise
-% %             Screen('DrawTexture', windowPtr, StimPatches(i), cuesrcrect, destrect, 90+round(numDegrees/4));
-%     end
-%
-%    xCoord = xCoord + amntchange;
-% end
-% xy = [lineCoordinates(:,round(numDegrees/4)), -lineCoordinates(:,round(numDegrees/4))];
-% Screen('DrawLines',windowPtr,xy,prefs.lineWidth,prefs.stimColor,[destrect(3)+amntchange destrect(4)-20],1);
-%
-% Screen('DrawText',windowPtr,'Press any key to begin!',textx,texty,[255 255 255]); texty = texty + 3*dy;
-% Screen('Flip', windowPtr);
-% waitForKey;
 
 % run a trial
 % -------------------------------------------------------------------------
-
+fbtrial = 0;
 for itrial = 1:prefs.nTrials;
     
     % setting values for current trial
@@ -297,8 +247,6 @@ for itrial = 1:prefs.nTrials;
     locChange = stimuliMat(itrial,end);
     pres2orientations(locChange) = pres1orientations(locChange) + designMat(itrial,1);
     ISI2delay = designMat(itrial,4); % delay time between intervals that transition between first and second presentations...(poorly explained)
-    %     x_positions = stimuliMat(itrial,1:setSize);
-    %     y_positions = stimuliMat(itrial,setSize+1:2*setSize);
     
     % adjusting number to be between 1-180 for stimulus presentations
     pres1orientations = mod(round(pres1orientations),180);
@@ -316,7 +264,6 @@ for itrial = 1:prefs.nTrials;
     while (GetSecs()-t0)<prefs.initTrialDur;
         % do nothing
     end
-   
     
     % blank fixation screen
     Screen('fillRect',windowPtr,prefs.bgColor);
@@ -439,17 +386,6 @@ for itrial = 1:prefs.nTrials;
         end
     end
     
-%     % blank screen (inter-stimulus interval)
-%     Screen('fillRect',windowPtr,prefs.bgColor);
-%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-%     % stimblank2 = toc
-%     Screen('flip',windowPtr); % tic
-%     % tic
-%     t0 = GetSecs();
-%     while (GetSecs()-t0)<designMat(itrial,4);
-%         % do nothing
-%     end
-    
     % second stimulus presentation
     Screen('fillRect',windowPtr,prefs.bgColor);
     if (prefs.stimecc)
@@ -464,13 +400,7 @@ for itrial = 1:prefs.nTrials;
             %             Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(istim) y_positions(istim)],1);
         end
     else
-        %         j = stimuliMat(itrial,end);
-        %         if j == 0;
-        %             j = ceil(rand*setSize);
-        %         end
         Screen('DrawTexture', windowPtr, StimPatches(prefs.reliabilityNum == designMat(itrial,3)), srcrect,destrect, 180-pres2orientations(k(istim)));
-        %         xy = [-lineStim lineStim ];
-        %         Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(j) y_positions(j)],1);
     end
     % ISI = toc
     Screen('flip',windowPtr);
@@ -532,11 +462,7 @@ for itrial = 1:prefs.nTrials;
         % do nothing
     end
     % ITI = toc
-    % save trial in data file and mat file
-    %     if (i==1)
-    %         writeHeaderToFile(D, prefs.fidxls);
-    %     end
-    %     writeTrialToFile(D, i, prefs.fidxls);
+    
     save(prefs.fidmat)
     
     % code for breaks/blocks
@@ -566,10 +492,12 @@ for itrial = 1:prefs.nTrials;
             WaitSecs(prefs.fix1Dur);
             
         else  % every FEEDBACKTRIALth trial
+            progPC = round(100*mean(designMat(fbtrial+1:itrial,7)));
+            fbtrial = itrial;
             %             progPC = mean(designMat(1:i,7));
             
             Screen('fillRect',windowPtr,prefs.bgColor);
-            Screen('DrawText',windowPtr,['You have earned ' num2str(round(100*nanmean(designMat(:,7)))) ' points. Press any key to continue'],250,screenCenter(2) - 50,[255 255 255]);
+            Screen('DrawText',windowPtr,['You have earned ' num2str(progPC) ' points. Press any key to continue'],250,screenCenter(2) - 50,[255 255 255]);
             Screen('Flip', windowPtr);
             waitForKey;
             

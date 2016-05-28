@@ -53,7 +53,7 @@ stimType        = 'gabor';          % stimulus type
 if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
     
     % info for current experiment
-    expName = ['Exp_ChangeDetection2_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
+    expName = ['Exp_ChangeLocalization_' exptype '_subj' num2str(subjid) '_session' num2str(sessionnum)];
     
     switch exptype
         case 'Simult' % simultaenous presentation
@@ -84,7 +84,7 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
             % if directionChange = 1, magnitude and direction of change
             % if directionChange = 0, should be 0 or 1 for yes/no change
             
-            pres1stimNum =[0 4]; % stimulus set size in first presentation
+            pres1stimNum =[0 2 2 4]; % stimulus set size in first presentation
             f2 = length(pres1stimNum);
             
             reliabilityNum = [1]; % contrast for gabor
