@@ -2,7 +2,7 @@ function processdata_luigi(subjid)
 
 subjid = upper(subjid);
 projectpath('CL')
-filepath = 'Experiment and Data/output_mat/';
+filepath = 'experiment_data/output_mat/';
 filenamestart = ['Exp_ChangeDetection2_Seq_subj' subjid];
 varnames = {'designMat','stimuliMat'};
 
@@ -16,10 +16,10 @@ designMat(isnan(designMat(:,end-2)),:) = [];
 
 
 % Nset1,Nset2,Cset,Rmat
-NsetVec = [0 2 2 4];            % number of stimuli in first display
-CsetVec = [2 1 2 1];            % which display change target was presented
+NsetVec = [0 4];            % number of stimuli in first display
+CsetVec = [2 1];            % which display change target was presented
 setsize = 4;                    % total stimuli presented
-deltaVec = 5:5:90;              % possible change values
+deltaVec = 2.5:5:87.5;              % possible change values
 nCond = length(NsetVec);        % number of conditions
 respVec = [3 0 4 0 0 0 2 0 1];  % go from response key to location index
 
