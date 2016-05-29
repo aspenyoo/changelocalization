@@ -63,20 +63,20 @@ if strcmp(afctype(end-5:end),'Detect'); % detection task (yes/no)
         case 'Seq' % sequential presentation
             
             % yes(1)/no(0)
-            vmprior = 0;         % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
+            vmprior = 0;            % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
 %             if ~(vmprior); nTrialsPerCond = 10; end % 10 per method of constant stimuli
-            screenshot = 0;      % do you want a screenshot?
-            feedback = 0;        % do you want to give feedback on performance?
-            allStimInPres2 = 1;  % all stimuli to be in pres2 (vs.just target)?
-            directionChange = 0; % task clockwise/counterclockwise (vs. yes/no)?
-            respInPres2 = 1;     % does 2nd presentation stay up until S responds?
+            screenshot = 0;         % do you want a screenshot?
+            feedback = 0;           % do you want to give feedback on performance?
+            allStimInPres2 = 1;     % all stimuli to be in pres2 (vs.just target)?
+            directionChange = 0;    % task clockwise/counterclockwise (vs. yes/no)?
+            respInPres2 = 1;        % does 2nd presentation stay up until S responds?
             stimPresent = 0;        % are all stimuli presented simultaneous in first presentation?
-            permLocInPres1 = 1;  % are stimuli locations in pres1 permuted?
+            permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
             
             % breaks and feedback
-            blocknum = 6;     % number of blocks ( 1 + number of breaks )
-            breakDuration = 20;   % duration of each break between blocks (sec)
-            feedbacktrial = 24; % every feedbacktrialth trial, feedback will be given
+            blocknum = 6;           % number of blocks ( 1 + number of breaks )
+            breakDuration = 20;     % duration of each break between blocks (sec)
+            feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
             
             % experimental design
             deltaNum = [1]; %

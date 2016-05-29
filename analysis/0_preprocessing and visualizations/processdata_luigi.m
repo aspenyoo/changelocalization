@@ -3,17 +3,15 @@ function processdata_luigi(subjid)
 subjid = upper(subjid);
 projectpath('CL')
 filepath = 'experiment_data/output_mat/';
-filenamestart = ['Exp_ChangeDetection2_Seq_subj' subjid];
+filenamestart = ['Exp_ChangeLocalization_Seq_subj' subjid];
 varnames = {'designMat','stimuliMat'};
 
 [concatvars] = concatcode(filepath,filenamestart,varnames); % getting all the variables from the files
 
 v2struct(concatvars); % taking the variables out of the struct
-
 % deleting incompleted trials
 stimuliMat(isnan(designMat(:,end-2)),:) = [];
 designMat(isnan(designMat(:,end-2)),:) = [];
-
 
 % Nset1,Nset2,Cset,Rmat
 NsetVec = [0 4];            % number of stimuli in first display
@@ -54,5 +52,5 @@ end
 
 % save
 c = clock;
-save(sprintf('data_ChangeLocalization_subj%s_%02d%02d%04d.mat', subjid,c(2),c(3),c(1)),'data');
-
+save(sprintf('luigidata_ChangeLocalization_subj%s_%02d%02d%04d.mat', subjid,c(2),c(3),c(1)),'data');
+save(sprintf('data_ChangeLocalization_subj%s.mat',subjid),'designMat','stimuliMat')
