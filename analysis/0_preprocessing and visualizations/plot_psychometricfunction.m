@@ -1,9 +1,9 @@
 % plot psychometric function for single or multiple subjects
 
 subjids = {'AHY'};
-condidx = [4 1];
+condidx = [4 1 2 3];
 
-delta = 5:5:90;
+delta = 2.5:5:87.5;
 nCond = length(condidx);
 nSubj = length(subjids);
 
@@ -11,11 +11,13 @@ figure;
 pc = nan(nSubj,nCond,length(delta));
 pic = nan(nSubj,nCond,length(delta));
 pii = nan(nSubj,nCond,length(delta));
+
+pc_std = nan(nCond,length(delta)); pic_std = pc_std; pii_std = pc_std;
 for isubj = 1:nSubj;
     
     % load file
     subjid = subjids{isubj};
-    load(sprintf('data_ChangeLocalization_subj%s_05242016.mat',subjid));
+    load(sprintf('luigidata_ChangeLocalization_subj%s.mat',subjid));
     
     for icond = 1:nCond;
         
@@ -24,13 +26,26 @@ for isubj = 1:nSubj;
         % plot correct
         pc(isubj,icond,:) = Rmat(:,1)./sum(Rmat,2);
         
+        
         % plot incorrect in correct interval
         pic(isubj,icond,:) = Rmat(:,2)./sum(Rmat,2);
+        
         
         % plot incorrect in incorrect interval
         pii(isubj,icond,:) = Rmat(:,3)./sum(Rmat,2);
         
+        if nSubj == 1;
+            pc_std(icond,:) = sqrt(squeeze(pc(isubj,icond,:).*(1-pc(isubj,icond,:))));
+            pic_std(icond,:) = sqrt(squeeze(pic(isubj,icond,:)).*squeeze((1-pic(isubj,icond,:))));
+            pii_std(icond,:) = sqrt(squeeze(pii(isubj,icond,:).*(1-pii(isubj,icond,:))));
+        end
     end
+end
+
+if nSubj > 1; 
+    pc_std = squeeze(std(pc,[],1))./sqrt(nSubj);
+    pic_std = squeeze(std(pic,[],1))./sqrt(nSubj);
+    pii_std = squeeze(std(pii,[],1))./sqrt(nSubj);
 end
 
 combinebins = 2;
@@ -51,11 +66,23 @@ pic = pic_new;
 pii = pii_new;
 delta = deltanew;
 
+if nSubj == 1;
+    pc_std = sqrt(squeeze(pc(isubj,:,:).*(1-pc(isubj,:,:))./(36.*(pc(isubj,:,:)))));
+    pic_std = sqrt(squeeze(pic(isubj,:,:).*(1-pic(isubj,:,:))./(36.*(pc(isubj,:,:)))));
+    pii_std= sqrt(squeeze(pii(isubj,:,:).*(1-pii(isubj,:,:))./(36.*(pc(isubj,:,:)))));
+end
+
+% if I don't want errorbars plotted
+errorbarplot = 1;
+if ~(errorbarplot)
+    pc_std = zeros(nBins_new,length(delta)); pic_std = pc_std; pii_std = pc_std;
+end
+
 % plot 0 and 4 condition percent correct
 subplot(2,2,1);
 hold on;
-errorbar(delta,squeeze(mean(pc(:,1,:),1)),squeeze(std(pc(:,1,:),[],1))/sqrt(nSubj),'Color','k','LineStyle','-');
-errorbar(delta,squeeze(mean(pc(:,2,:),1)),squeeze(std(pc(:,2,:),[],1))/sqrt(nSubj),'Color',0.7*ones(1,3),'LineStyle','-');
+errorbar(delta,squeeze(mean(pc(:,1,:),1)),pc_std(1,:),'Color','k','LineStyle','-');
+errorbar(delta,squeeze(mean(pc(:,4,:),1)),pc_std(4,:),'Color',0.7*ones(1,3),'LineStyle','-');
 legend('2nd interval','1st interval')
 defaultplot;
 title('pc for 0 and 4 condition')
@@ -63,8 +90,8 @@ title('pc for 0 and 4 condition')
 % plot pc psychometric functions for the two 2 conditions
 subplot(2,2,2);
 hold on;
-errorbar(delta,squeeze(mean(pc(:,2,:),1)),squeeze(std(pc(:,2,:),[],1))/sqrt(nSubj),'Color','r','LineStyle','--');
-errorbar(delta,squeeze(mean(pc(:,3,:),1)),squeeze(std(pc(:,3,:),[],1))/sqrt(nSubj),'Color','b','LineStyle','-');
+errorbar(delta,squeeze(mean(pc(:,2,:),1)),pc_std(2,:),'Color','r','LineStyle','--');
+errorbar(delta,squeeze(mean(pc(:,3,:),1)),pc_std(3,:),'Color','b','LineStyle','-');
 legend('2/1','2/2')
 defaultplot
 title('pc for 2 conditions')
@@ -72,8 +99,8 @@ title('pc for 2 conditions')
 % plot pic psychometric functions for both 2 condtions
 subplot(2,2,3);
 hold on;
-errorbar(delta,squeeze(mean(pic(:,2,:),1)),squeeze(std(pic(:,2,:),[],1))/sqrt(nSubj),'Color','r','LineStyle','--');
-errorbar(delta,squeeze(mean(pic(:,3,:),1)),squeeze(std(pic(:,3,:),[],1))/sqrt(nSubj),'Color','b','LineStyle','-');
+errorbar(delta,squeeze(mean(pic(:,2,:),1)),pic_std(2,:),'Color','r','LineStyle','--');
+errorbar(delta,squeeze(mean(pic(:,3,:),1)),pic_std(3,:),'Color','b','LineStyle','-');
 legend('2/1','2/2')
 title('incorrect item, correct interval')
 defaultplot
@@ -81,8 +108,8 @@ defaultplot
 % plot pic psychometric functions for both 2 condtions
 subplot(2,2,4);
 hold on;
-errorbar(delta,squeeze(mean(pii(:,2,:),1))./2,squeeze(std(pii(:,2,:),[],1))/sqrt(nSubj),'Color','r','LineStyle','--');
-errorbar(delta,squeeze(mean(pii(:,3,:),1))./2,squeeze(std(pii(:,3,:),[],1))/sqrt(nSubj),'Color','b','LineStyle','-');
+errorbar(delta,squeeze(mean(pii(:,2,:),1))./2,pii_std(2,:),'Color','r','LineStyle','--');
+errorbar(delta,squeeze(mean(pii(:,3,:),1))./2,pii_std(3,:),'Color','b','LineStyle','-');
 legend('2/1','2/2')
 title('incorrect item, incorrect interval')
 defaultplot

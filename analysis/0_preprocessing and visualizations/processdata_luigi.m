@@ -14,8 +14,8 @@ stimuliMat(isnan(designMat(:,end-2)),:) = [];
 designMat(isnan(designMat(:,end-2)),:) = [];
 
 % Nset1,Nset2,Cset,Rmat
-NsetVec = [0 4];            % number of stimuli in first display
-CsetVec = [2 1];            % which display change target was presented
+NsetVec = [0 2 2 4];            % number of stimuli in first display
+CsetVec = [2 1 2 1];            % which display change target was presented
 setsize = 4;                    % total stimuli presented
 deltaVec = 2.5:5:87.5;              % possible change values
 nCond = length(NsetVec);        % number of conditions
@@ -52,5 +52,6 @@ end
 
 % save
 c = clock;
-save(sprintf('luigidata_ChangeLocalization_subj%s_%02d%02d%04d.mat', subjid,c(2),c(3),c(1)),'data');
-save(sprintf('data_ChangeLocalization_subj%s.mat',subjid),'designMat','stimuliMat')
+save(sprintf('C:/Users/Aspen Yoo/OneDrive/Research/VSTM/Change Localization/Data/luigidata/luigidata_ChangeLocalization_subj%s.mat', subjid),'data');
+save(sprintf('C:/Users/Aspen Yoo/OneDrive/Research/VSTM/Change Localization/Data/combineddata/data_ChangeLocalization_subj%s.mat',subjid),'designMat','stimuliMat')
+display('done')
