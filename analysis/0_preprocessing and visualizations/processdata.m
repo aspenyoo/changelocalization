@@ -1,10 +1,11 @@
-function processdata_luigi(subjid)
+function processdata(subjid)
 
 subjid = upper(subjid);
 projectpath('CL')
 filepath = 'experiment_data/output_mat/';
+% filenamestart = ['Exp_ChangeDetection2_Seq_subj' subjid];
 filenamestart = ['Exp_ChangeLocalization_Seq_subj' subjid];
-varnames = {'designMat','stimuliMat'};
+varnames = {'designMat','stimuliMat','names'};
 
 [concatvars] = concatcode(filepath,filenamestart,varnames); % getting all the variables from the files
 
@@ -17,6 +18,7 @@ designMat(isnan(designMat(:,end-2)),:) = [];
 NsetVec = [0 2 2 4];            % number of stimuli in first display
 CsetVec = [2 1 2 1];            % which display change target was presented
 setsize = 4;                    % total stimuli presented
+% deltaVec = 5:5:90;
 deltaVec = 2.5:5:87.5;              % possible change values
 nCond = length(NsetVec);        % number of conditions
 respVec = [3 0 4 0 0 0 2 0 1];  % go from response key to location index
@@ -53,5 +55,5 @@ end
 % save
 c = clock;
 save(sprintf('C:/Users/Aspen Yoo/OneDrive/Research/VSTM/Change Localization/Data/luigidata/luigidata_ChangeLocalization_subj%s.mat', subjid),'data');
-save(sprintf('C:/Users/Aspen Yoo/OneDrive/Research/VSTM/Change Localization/Data/combineddata/data_ChangeLocalization_subj%s.mat',subjid),'designMat','stimuliMat')
+save(sprintf('C:/Users/Aspen Yoo/OneDrive/Research/VSTM/Change Localization/Data/combineddata/data_ChangeLocalization_subj%s.mat',subjid),'designMat','stimuliMat','names')
 display('done')

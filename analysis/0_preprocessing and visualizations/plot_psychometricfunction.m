@@ -1,10 +1,9 @@
 % plot psychometric function for single or multiple subjects
 
-subjids = {'AHY'};
-condidx = [4 1 2 3];
+subjids = {'LA'};
 
 delta = 2.5:5:87.5;
-nCond = length(condidx);
+nCond = 4;
 nSubj = length(subjids);
 
 figure;
