@@ -38,7 +38,8 @@ function [loglike,prmat] = AhyBCL_datalike1(theta,Nset1,Nset2,Cset,Rmat,model,Ns
 %   Date: Apr/26/2016.
 
 if nargin < 7 || isempty(Nsamples); Nsamples = 1e4; end
-if nargin < 8 || isempty(ds); ds = (5:5:90)'; end
+% if nargin < 8 || isempty(ds); ds = (5:5:90)'; end
+if nargin < 8 || isempty(ds); ds = (2.5:5:87.5)'; end
 
 ds = ds(:)/90*pi;               % Convert from [-90,90] deg to [-pi,pi]
 
