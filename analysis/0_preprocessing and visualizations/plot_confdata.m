@@ -2,7 +2,7 @@
 clear all
 clc
 
-subjids = {'AHY'};
+subjids = {'LA'};
 
 % deltaVec = 5:5:90;
 deltabinVec = [0 10:10:90];
