@@ -1,3 +1,4 @@
+%plot_psychometricfunction
 % plot psychometric function for single or multiple subjects
 
 subjids = {'LA'};
