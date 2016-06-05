@@ -2,7 +2,7 @@
 clear all
 clc
 
-subjids = {'LA'};
+subjids = {'AHY'};
 
 % deltaVec = 5:5:90;
 deltabinVec = [0 10:10:90];
@@ -47,7 +47,7 @@ for isubj = 1:nSubj;
                 
                 
                 confcond(isubj,icond,idelta) = mean(designMat(idxx,9));
-                confcond_std(isubj,icond,idelta) = std(designMat(idxx,9))./sum(idxx);
+                confcond_std(isubj,icond,idelta) = std(designMat(idxx,9))./sqrt(sum(idxx));
             end 
         end
         
@@ -82,21 +82,21 @@ end
 
 % ========= PLOTS! ===========
 
-% mean confidence of delta for each condition
-figure;
-if nSubj == 1;
-    for icond = 1:nCond;
-        subplot(2,2,icond);
-        errorbar(bincenters,squeeze(confcond(1,icond,:)),squeeze(confcond_std(1,icond,:)),'Color','k');
-        defaultplot
-        title(sprintf('condition %d/%d',NsetVec(icond),CsetVec(icond)))
-        xlabel('delta')
-        ylabel('mean confidence')
-        ylim([1 4])
-        ax = gca;
-        ax.YTick = 1:4;
-    end
-end
+% % mean confidence of delta for each condition
+% figure;
+% if nSubj == 1;
+%     for icond = 1:nCond;
+%         subplot(2,2,icond);
+%         errorbar(bincenters,squeeze(confcond(1,icond,:)),squeeze(confcond_std(1,icond,:)),'Color','k');
+%         defaultplot
+%         title(sprintf('condition %d/%d',NsetVec(icond),CsetVec(icond)))
+%         xlabel('delta')
+%         ylabel('mean confidence')
+%         ylim([1 4])
+%         ax = gca;
+%         ax.YTick = 1:4;
+%     end
+% end
 
 % confidence for just 0/2 and 4/1 conditions
 figure; hold on;
@@ -114,55 +114,57 @@ ax = gca;
 ax.YTick = 1:4;
 legend('first interval','second interval')
 
-% mean confidence of delta across condition
-figure;
-errorbar(bincenters,squeeze(conf),squeeze(conf_std),'Color','k')
-defaultplot
-title('mean confidence across condition')
-xlabel('delta')
-ylabel('mean confidence')
-ylim([1 4])
-ax = gca;
-ax.YTick = 1:4;
 
-% PC across confidence
-figure;
-for icond = 1:nCond;
-    subplot(2,2,icond)
-    errorbar(1:4,squeeze(PCcond(1,icond,:)),squeeze(PCcond_std(1,icond,:)),'Color','k');
-    defaultplot
-    title(sprintf('condition %d/%d',NsetVec(icond),CsetVec(icond)))
-    xlabel('confidence')
-    ylabel('proportion correct')
-    ylim([.25 1])
-    ax = gca;
-    ax.YTick = [0.25 0.5 0.75 1];
-    ax.XTick = 1:4;
-end
 
-% PC for just 0/2 and 4/1 conditions
-figure; hold on;
-errorbar(1:4,squeeze(PCcond(1,4,:)),squeeze(PCcond_std(1,4,:)),'Color',0.5*ones(1,3));
-errorbar(1:4,squeeze(PCcond(1,1,:)),squeeze(PCcond_std(1,1,:)),'Color','k');
-% errorbar(1:4,squeeze(PCcond(1,2,:)),squeeze(PCcond_std(1,2,:)),'Color','r');
-% errorbar(1:4,squeeze(PCcond(1,3,:)),squeeze(PCcond_std(1,3,:)),'Color','b');
-defaultplot
-xlabel('confidence')
-ylabel('proportion correct')
-ylim([.25 1])
-ax = gca;
-ax.YTick = [0.25 0.5 0.75 1];
-ax.XTick = 1:4;
-legend('first interval','second interval')
-
-% PC of confidence across condition
-figure;
-errorbar(1:4,squeeze(PC),squeeze(PC_std),'Color','k')
-defaultplot
-title('PC for each confidence level')
-xlabel('confidence')
-ylabel('proportion correct')
-ylim([.25 1])
-ax = gca;
-ax.YTick = [0.25 0.5 0.75 1];
-ax.XTick = 1:4;
+% % mean confidence of delta across condition
+% figure;
+% errorbar(bincenters,squeeze(conf),squeeze(conf_std),'Color','k')
+% defaultplot
+% title('mean confidence across condition')
+% xlabel('delta')
+% ylabel('mean confidence')
+% ylim([1 4])
+% ax = gca;
+% ax.YTick = 1:4;
+% 
+% % PC across confidence
+% figure;
+% for icond = 1:nCond;
+%     subplot(2,2,icond)
+%     errorbar(1:4,squeeze(PCcond(1,icond,:)),squeeze(PCcond_std(1,icond,:)),'Color','k');
+%     defaultplot
+%     title(sprintf('condition %d/%d',NsetVec(icond),CsetVec(icond)))
+%     xlabel('confidence')
+%     ylabel('proportion correct')
+%     ylim([.25 1])
+%     ax = gca;
+%     ax.YTick = [0.25 0.5 0.75 1];
+%     ax.XTick = 1:4;
+% end
+% 
+% % PC for just 0/2 and 4/1 conditions
+% figure; hold on;
+% errorbar(1:4,squeeze(PCcond(1,4,:)),squeeze(PCcond_std(1,4,:)),'Color',0.5*ones(1,3));
+% errorbar(1:4,squeeze(PCcond(1,1,:)),squeeze(PCcond_std(1,1,:)),'Color','k');
+% % errorbar(1:4,squeeze(PCcond(1,2,:)),squeeze(PCcond_std(1,2,:)),'Color','r');
+% % errorbar(1:4,squeeze(PCcond(1,3,:)),squeeze(PCcond_std(1,3,:)),'Color','b');
+% defaultplot
+% xlabel('confidence')
+% ylabel('proportion correct')
+% ylim([.25 1])
+% ax = gca;
+% ax.YTick = [0.25 0.5 0.75 1];
+% ax.XTick = 1:4;
+% legend('first interval','second interval')
+% 
+% % PC of confidence across condition
+% figure;
+% errorbar(1:4,squeeze(PC),squeeze(PC_std),'Color','k')
+% defaultplot
+% title('PC for each confidence level')
+% xlabel('confidence')
+% ylabel('proportion correct')
+% ylim([.25 1])
+% ax = gca;
+% ax.YTick = [0.25 0.5 0.75 1];
+% ax.XTick = 1:4;
