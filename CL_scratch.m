@@ -69,3 +69,8 @@ predictedConf(row) = col+1;
 predictedConf(logoddssign(:,1) == 1 ) = 1;
 predictedConf(logoddssign(:,3) == -1) = 4;
 hold on; plot(xx,predictedConf);
+
+
+%% plot psychometric fn
+
+
