@@ -1,7 +1,6 @@
 function processdata(subjid)
 
 subjid = upper(subjid);
-projectpath('CL')
 filepath = 'experiment_data/output_mat/';
 % filenamestart = ['Exp_ChangeDetection2_Seq_subj' subjid];
 filenamestart = ['Exp_ChangeLocalization_Seq_subj' subjid];

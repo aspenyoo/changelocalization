@@ -1,7 +1,7 @@
 %plot_psychometricfunction
 % plot psychometric function for single or multiple subjects
 
-subjids = {'LA'};
+subjids = {'AHY'};
 
 delta = 2.5:5:87.5;
 nCond = 4;
@@ -79,42 +79,46 @@ if ~(errorbarplot)
 end
 
 % plot 0 and 4 condition percent correct
-subplot(2,2,1);
+% subplot(2,2,1);
 hold on;
 errorbar(delta,squeeze(mean(pc(:,1,:),1)),pc_std(1,:),'Color','k','LineStyle','-');
 errorbar(delta,squeeze(mean(pc(:,4,:),1)),pc_std(4,:),'Color',0.7*ones(1,3),'LineStyle','-');
 legend('2nd interval','1st interval')
 defaultplot;
 title('pc for 0 and 4 condition')
-
-% plot pc psychometric functions for the two 2 conditions
-subplot(2,2,2);
-hold on;
-errorbar(delta,squeeze(mean(pc(:,2,:),1)),pc_std(2,:),'Color','r','LineStyle','--');
-errorbar(delta,squeeze(mean(pc(:,3,:),1)),pc_std(3,:),'Color','b','LineStyle','-');
-legend('2/1','2/2')
-defaultplot
-title('pc for 2 conditions')
-
-% plot pic psychometric functions for both 2 condtions
-subplot(2,2,3);
-hold on;
-errorbar(delta,squeeze(mean(pic(:,2,:),1)),pic_std(2,:),'Color','r','LineStyle','--');
-errorbar(delta,squeeze(mean(pic(:,3,:),1)),pic_std(3,:),'Color','b','LineStyle','-');
-legend('2/1','2/2')
-title('incorrect item, correct interval')
-defaultplot
-
-% plot pic psychometric functions for both 2 condtions
-subplot(2,2,4);
-hold on;
-errorbar(delta,squeeze(mean(pii(:,2,:),1))./2,pii_std(2,:),'Color','r','LineStyle','--');
-errorbar(delta,squeeze(mean(pii(:,3,:),1))./2,pii_std(3,:),'Color','b','LineStyle','-');
-legend('2/1','2/2')
-title('incorrect item, incorrect interval')
-defaultplot
+ax = gca;
+ax.XTick = [0 30 60 90];
+ax.YTick = [0 0.5 1];
 
 
-% average pc across conditions
-ave_pc = squeeze(mean(mean(pc,1),3))
+% % plot pc psychometric functions for the two 2 conditions
+% subplot(2,2,2);
+% hold on;
+% errorbar(delta,squeeze(mean(pc(:,2,:),1)),pc_std(2,:),'Color','r','LineStyle','--');
+% errorbar(delta,squeeze(mean(pc(:,3,:),1)),pc_std(3,:),'Color','b','LineStyle','-');
+% legend('2/1','2/2')
+% defaultplot
+% title('pc for 2 conditions')
+% 
+% % plot pic psychometric functions for both 2 condtions
+% subplot(2,2,3);
+% hold on;
+% errorbar(delta,squeeze(mean(pic(:,2,:),1)),pic_std(2,:),'Color','r','LineStyle','--');
+% errorbar(delta,squeeze(mean(pic(:,3,:),1)),pic_std(3,:),'Color','b','LineStyle','-');
+% legend('2/1','2/2')
+% title('incorrect item, correct interval')
+% defaultplot
+% 
+% % plot pic psychometric functions for both 2 condtions
+% subplot(2,2,4);
+% hold on;
+% errorbar(delta,squeeze(mean(pii(:,2,:),1))./2,pii_std(2,:),'Color','r','LineStyle','--');
+% errorbar(delta,squeeze(mean(pii(:,3,:),1))./2,pii_std(3,:),'Color','b','LineStyle','-');
+% legend('2/1','2/2')
+% title('incorrect item, incorrect interval')
+% defaultplot
+
+
+% % average pc across conditions
+% ave_pc = squeeze(mean(mean(pc,1),3))
 
