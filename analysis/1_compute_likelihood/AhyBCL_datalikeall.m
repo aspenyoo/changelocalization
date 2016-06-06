@@ -24,10 +24,10 @@ if nargin < 4; Nsamples = []; end   % Use default
 
 if isempty(X)   % Fill X with default experimental structure
     fakerun = 1;
-    X{1}.Nset1 = 2; X{1}.Nset2 = 2; X{1}.Cset = 1;
-    X{2}.Nset1 = 2; X{2}.Nset2 = 2; X{2}.Cset = 2;
-    X{3}.Nset1 = 4; X{3}.Nset2 = 0; X{3}.Cset = 1;
-    X{4}.Nset1 = 0; X{4}.Nset2 = 4; X{4}.Cset = 2;
+    X{1}.Nset1 = 0; X{1}.Nset2 = 4; X{1}.Cset = 2;
+    X{2}.Nset1 = 2; X{2}.Nset2 = 2; X{2}.Cset = 1;
+    X{3}.Nset1 = 2; X{3}.Nset2 = 2; X{3}.Cset = 2;
+    X{4}.Nset1 = 4; X{4}.Nset2 = 0; X{4}.Cset = 1;
     for iCnd = 1:numel(X); X{iCnd}.Rmat = []; end
 else
     fakerun = 0;
@@ -49,8 +49,7 @@ loglike = sum(ll);
 
 % Generate fake data if required
 if fakerun && nargout > 2
-    Ntrials = 20*ones(18,1);
-    Ntrials([1,end]) = round(Ntrials([1,end])/2);
+    Ntrials = 24*ones(18,1);
     for iCnd = 1:numel(X)
         X{iCnd}.Rmat = mnrnd(Ntrials, prmat{iCnd});
     end

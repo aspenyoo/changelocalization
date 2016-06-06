@@ -1,13 +1,12 @@
-%plot_psychometricfunction
+function plot_psychometricfunction(subjids,condVec)
 % plot psychometric function for single or multiple subjects
 
-subjids = {'AHY'};
+% subjids = {'AHY'};
 
 delta = 2.5:5:87.5;
 nCond = 4;
 nSubj = length(subjids);
 
-figure;
 pc = nan(nSubj,nCond,length(delta));
 pic = nan(nSubj,nCond,length(delta));
 pii = nan(nSubj,nCond,length(delta));
@@ -59,8 +58,8 @@ for ibin = 1:nBins_new;
     pc_new(:,:,ibin) = mean(pc(:,:,(ibin-1)*combinebins+1 : ibin*combinebins),3);
     pic_new(:,:,ibin) = mean(pic(:,:,(ibin-1)*combinebins+1 : ibin*combinebins),3);
     pii_new(:,:,ibin) = mean(pii(:,:,(ibin-1)*combinebins+1 : ibin*combinebins),3);
-    
 end
+
 pc = pc_new;
 pic = pic_new;
 pii = pii_new;
@@ -78,14 +77,17 @@ if ~(errorbarplot)
     pc_std = zeros(nBins_new,length(delta)); pic_std = pc_std; pii_std = pc_std;
 end
 
-% plot 0 and 4 condition percent correct
 % subplot(2,2,1);
+colors = aspencolors(4,'pastel');%['b'; 'y'; 'g'; 'r'];
+% figure; hold on;
 hold on;
-errorbar(delta,squeeze(mean(pc(:,1,:),1)),pc_std(1,:),'Color','k','LineStyle','-');
-errorbar(delta,squeeze(mean(pc(:,4,:),1)),pc_std(4,:),'Color',0.7*ones(1,3),'LineStyle','-');
-legend('2nd interval','1st interval')
+for icond = 1:length(condVec);
+errorbar(delta,squeeze(mean(pc(:,condVec(icond),:),1)),pc_std(condVec(icond),:),'Color',colors(condVec(icond),:));
+end
+% errorbar(delta,squeeze(mean(pc(:,4,:),1)),pc_std(4,:),'Color',0.7*ones(1,3),'LineStyle','-');
+% legend(sprintf('condition %d/%d',data{condVec(icond)}.Nset1,data{condVec(icond)}.Nset1),'1st interval')
 defaultplot;
-title('pc for 0 and 4 condition')
+% title('pc for 0 and 4 condition')
 ax = gca;
 ax.XTick = [0 30 60 90];
 ax.YTick = [0 0.5 1];
