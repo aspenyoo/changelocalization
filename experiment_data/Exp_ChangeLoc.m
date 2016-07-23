@@ -1,4 +1,4 @@
-function Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond, ispractice)
+function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, ispractice)
 % runs 2AFC experiment: orientation change detection task.
 %
 % STRUCT EXPLANATIONS
@@ -9,10 +9,9 @@ function Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond, ispractice)
 % ========================================================================
 % SETTING THINGS UP (changing this section is usually unnecessary)
 % ========================================================================
-if nargin < 1; subjid = []; end
-if nargin < 2; sessionnum = []; end
-if nargin < 3; nTrialsPerCond = []; end
-if nargin < 4; ispractice = 0; end
+if nargin < 3; sessionnum = []; end
+if nargin < 4; nTrialsPerCond = []; end
+if nargin < 5; ispractice = 0; end
 
 commandwindow;
 
@@ -27,9 +26,9 @@ screenDistance = 40;                      % distance between observer and screen
 
 % importing preferences for simultaneous/sequential experiment
 if (ispractice)
-    prefs = prefscode('Pract_Detect','Seq',subjid, sessionnum,nTrialsPerCond);
+    prefs = prefscode(['Pract_' exptype],subjid,sessionnum,nTrialsPerCond);
 else
-    prefs = prefscode('Detect','Seq',subjid, sessionnum,nTrialsPerCond);
+    prefs = prefscode(exptype,subjid,sessionnum,nTrialsPerCond);
 end
 
 % response keys
@@ -78,7 +77,7 @@ HideCursor;
 % ========================================================================
 % EXPERIMENT TRIAL AND STIMULI INFORMATION/CALCULATIONS
 % ========================================================================
-setSize = max(prefs.pres1stimNum);
+setsize = max(prefs.pres1stimNum);
 
 
 % TRIAL VARIABLES
@@ -88,9 +87,9 @@ setSize = max(prefs.pres1stimNum);
 designMat = [];
 designMat(:,1) = prefs.deltaNum(prefs.design(:,1));
 designMat(:,2) = prefs.pres1stimNum(prefs.design(:,2));
-designMat(:,3) = prefs.reliabilityNum(prefs.design(:,3));
-designMat(:,4) = prefs.ISIdelayNum(prefs.design(:,4));
-designMat(:,5) = 1:prefs.nCond;
+designMat(:,3:2+setsize) = prefs.reliabilityNum(prefs.design(:,3),:);
+designMat(:,3+setsize) = prefs.ISIdelayNum(prefs.design(:,4));
+designMat(:,4+setsize) = 1:prefs.nCond;
 if (prefs.vmprior)
     designMat = repmat(designMat, [prefs.nTrialsPerCond 1]);
     designMat(:,1) = designMat(:,1).*circ_vmrnd(0,prefs.vmprior, [size(designMat,1),1])*180/pi; %sort(repmat([-45:10:45]',[prefs.nCond 1]));
@@ -115,15 +114,15 @@ nPC = floor(prefs.nTrials/prefs.feedbacktrial);
 % names of variables in designMat
 names.designMat = cell(1,8);
 names.designMat{1} = 'delta'; names.designMat{2} = 'set size';
-names.designMat{4} = 'delay time';
-names.designMat{5} = 'condition number'; names.designMat{6} = 'response';
-names.designMat{7} = 'Correct?'; names.designMat{8} = 'RT';
+names.designMat{3+setsize} = 'delay time';
+names.designMat{4+setsize} = 'condition number'; names.designMat{5+setsize} = 'response';
+names.designMat{6+setsize} = 'Correct?'; names.designMat{7+setsize} = 'RT';
 
 switch prefs.stimType
     case 'ellipse'
         names.designMat{3} = 'ellipse reliability';
     case 'gabor'
-        names.designMat{3} = 'stimulus contrast';
+        names.designMat{3} = 'gabor contrast';
 end
 
 % calculating where breaks will occur
@@ -134,24 +133,24 @@ else
 end
 
 % STIMULI MAT: screen positions, orientations, target locations
-stimuliMat = nan(prefs.nTrials, 2*setSize + 1);
+stimuliMat = nan(prefs.nTrials, 2*setsize + 1);
 % names of columns
-names.stimuliMat = cell(1,(2*setSize+1));
-for j = 1:setSize;
+names.stimuliMat = cell(1,(2*setsize+1));
+for j = 1:setsize;
     names.stimuliMat{j} = ['stimulus ' num2str(j) ' presentation interval'];
-    names.stimuliMat{j+setSize} = ['stimulus' num2str(j) ' orientation (pres 1)'];
+    names.stimuliMat{j+setsize} = ['stimulus' num2str(j) ' orientation (pres 1)'];
 end
-names.stimuliMat{2*setSize+1} = 'target location number';
+names.stimuliMat{2*setsize+1} = 'target location number';
 
 stimuliMat(:,end) = 1-(designMat(:,1)==0);
-stimuliMat(:,end) = ceil(rand(prefs.nTrials,1).*stimuliMat(:,end).*setSize);
+stimuliMat(:,end) = ceil(rand(prefs.nTrials,1).*stimuliMat(:,end).*setsize);
 
 % target stimulus
 for itrial = 1:prefs.nTrials
     
     % Initial orientations
-    randOrt = round(180*rand(1,setSize));
-    stimuliMat(itrial,setSize+1:2*setSize) = randOrt;
+    randOrt = round(180*rand(1,setsize));
+    stimuliMat(itrial,setsize+1:2*setsize) = randOrt;
 end
 
 % stimulus location
@@ -171,12 +170,12 @@ if (randloc)
     % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
     %     end
 else
-    locAngles = pi/4-(1:setSize)*(2*pi)/setSize;
+    locAngles = pi/4-(1:setsize)*(2*pi)/setsize;
     [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
-    x_positions = X(1:setSize) + screenCenter(1)...
-        + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
-    y_positions = Y(1:setSize) + screenCenter(2)...
-        + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
+    x_positions = X(1:setsize) + screenCenter(1)...
+        + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
+    y_positions = Y(1:setsize) + screenCenter(2)...
+        + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
 end
 
 % matrix of all possible stimuli
@@ -191,30 +190,31 @@ clear StimPatches;
 res = 1; % resolution
 numDegrees = ceil(180/res);
 
+uniqueReliabilities = unique(prefs.reliabilityNum);
 switch prefs.stimType
     case 'ellipse'
-        StimPatches = zeros(length(prefs.reliabilityNum),numDegrees); % holds the stimulus image patches
-        StimSizes = zeros(length(prefs.reliabilityNum),numDegrees+1,2); % holds stimulus image sizes
+        StimPatches = zeros(length(uniqueReliabilities),numDegrees); % holds the stimulus image patches
+        StimSizes = zeros(length(uniqueReliabilities),numDegrees+1,2); % holds stimulus image sizes
         
         % Fill StimPatches and StimSizes
-        for itrial = 1:length(prefs.reliabilityNum)
+        for irel = 1:length(prefs.reliabilityNum)
             % Eccentricity = reliability for now
-            reliability = prefs.reliabilityNum(itrial);
+            reliability = uniqueReliabilities(irel);
             % Draw a patch for each orientation
-            for j = 1:numDegrees
-                im = drawEllipse(prefs.stimArea,reliability,j*res,prefs.stimColor,prefs.bgColor);
-                StimPatches(itrial,j) = Screen('MakeTexture',windowPtr,im);
-                StimSizes(itrial,j,:) = size(im);
-                StimSizes(itrial,j,:) = StimSizes(itrial,j,[2 1]);
+            for ideg = 1:numDegrees
+                im = drawEllipse(prefs.stimArea,reliability,ideg*res,prefs.stimColor,prefs.bgColor);
+                StimPatches(irel,ideg) = Screen('MakeTexture',windowPtr,im);
+                StimSizes(irel,ideg,:) = size(im);
+                StimSizes(irel,ideg,:) = StimSizes(irel,ideg,[2 1]);
             end
         end
     case 'gabor'
-        StimPatches = zeros(1,length(prefs.reliabilityNum));
+        StimPatches = zeros(1,length(uniqueReliabilities)); % make a stimpatch for each unique reliability value
         StimSizes = [stimLength stimLength];
-        for itrial = 1:length(prefs.reliabilityNum)
-            reliability = prefs.reliabilityNum(itrial);
+        for irel = 1:length(uniqueReliabilities)
+            reliability = uniqueReliabilities(irel);
             im = makeGabor(stimLength, reliability);
-            StimPatches(itrial) = Screen('MakeTexture',windowPtr,im);
+            StimPatches(irel) = Screen('MakeTexture',windowPtr,im);
             %             StimPatches(i) = CreateProceduralGabor(windowPtr, stimLength, stimLength ,[],[0.5 0.5 0.5 0.0], [], reliability);
         end
 end
@@ -243,11 +243,11 @@ for itrial = 1:prefs.nTrials;
     
     % setting values for current trial
     %     condition = designMat(itrial,5); % current condition
-    pres1orientations = stimuliMat(itrial,setSize+1:2*setSize);
+    pres1orientations = stimuliMat(itrial,setsize+1:2*setsize);
     pres2orientations = pres1orientations;
     locChange = stimuliMat(itrial,end);
     pres2orientations(locChange) = pres1orientations(locChange) + designMat(itrial,1);
-    ISI2delay = designMat(itrial,4); % delay time between intervals that transition between first and second presentations...(poorly explained)
+    ISI2delay = designMat(itrial,3+setsize); % delay time between intervals that transition between first and second presentations...(poorly explained)
     
     % adjusting number to be between 1-180 for stimulus presentations
     pres1orientations = mod(round(pres1orientations),180);
@@ -279,11 +279,11 @@ for itrial = 1:prefs.nTrials;
     % first stimulus presentation
     % =========================================================
     
-    stimPerInterval = [designMat(itrial,2) setSize];
+    stimPerInterval = [designMat(itrial,2) setsize];
     
     % if nothing in first interval...
     if ~(prefs.stimPresent) && (stimPerInterval(1) == 0) % sequential presentation & nothing in first interval
-        
+
         % blank screen for stimulus duration + ISI
         Screen('fillRect',windowPtr,prefs.bgColor);
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -298,21 +298,21 @@ for itrial = 1:prefs.nTrials;
     % the stimulus presentations
     Screen('fillRect',windowPtr,prefs.bgColor);
     if (prefs.permLocInPres1)
-        k = randperm(setSize);
+        k = randperm(setsize);
     else
-        k = 1:setSize;
+        k = 1:setsize;
     end
     
-    for istim = 1:setSize;
+    for istim = 1:setsize;
         switch prefs.stimType
             case 'ellipse'
-                srcrect = [0 0 squeeze(StimSizes(prefs.reliabilityNum == designMat(itrial,3),pres1orientations(k(istim)),:))'];
+                srcrect = [0 0 squeeze(StimSizes(uniqueReliabilities == designMat(itrial,2+k(istim)),pres1orientations(k(istim)),:))'];
                 destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-                Screen('drawtexture',windowPtr,StimPatches(prefs.reliabilityNum == designMat(itrial,3),pres1orientations(k(istim))),srcrect,destrect,0);
+                Screen('drawtexture',windowPtr,StimPatches(uniqueReliabilities == designMat(itrial,2+k(istim)),pres1orientations(k(istim))),srcrect,destrect,0);
             case 'gabor'
                 srcrect = [0 0 StimSizes];
                 destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-                Screen('DrawTexture', windowPtr, StimPatches(prefs.reliabilityNum == designMat(itrial,3)), srcrect,destrect, 180-pres1orientations(k(istim)));
+                Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == designMat(itrial,2+k(istim))), srcrect,destrect, 180-pres1orientations(k(istim)));
                 stimuliMat(itrial,k(istim)) = 2-(istim <= stimPerInterval(1));% index of which interval
         end
         if ~prefs.stimPresent % sequential presentation
@@ -336,7 +336,7 @@ for itrial = 1:prefs.nTrials;
                 % tic;
                 t0 = GetSecs();
                 
-                if (istim == setSize); % if it's last interval for first presentation
+                if (istim == setsize); % if it's last interval for first presentation
                     while (GetSecs()-t0) < ISI2delay; % ISI between first and second presentation intervals
                         % do nothing
                     end
@@ -374,8 +374,7 @@ for itrial = 1:prefs.nTrials;
     end
     
     % if need a blank screen for a pres1 period of time at the end
-    if ~(prefs.stimPresent) && (stimPerInterval(1) == setSize) % simultaneous presentation
-        
+    if ~(prefs.stimPresent) && (stimPerInterval(1) == setsize) % simultaneous presentation
         % blank screen
         Screen('fillRect',windowPtr,prefs.bgColor);
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -393,15 +392,15 @@ for itrial = 1:prefs.nTrials;
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
     end
     if (prefs.allStimInPres2) % if presenting all stimuli at once
-        for istim= 1:setSize % for each stimulus, draw appropriate stimulus
+        for istim= 1:setsize % for each stimulus, draw appropriate stimulus
             srcrect = [0 0 StimSizes];
             destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-            Screen('DrawTexture', windowPtr, StimPatches(prefs.reliabilityNum == designMat(itrial,3)), srcrect,destrect, 180-pres2orientations(k(istim)));
+            Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == max(uniqueReliabilities)), srcrect,destrect, 180-pres2orientations(k(istim)));
             %             xy = [-lineStim(:,istim) lineStim(:,istim) ];
             %             Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(istim) y_positions(istim)],1);
         end
     else
-        Screen('DrawTexture', windowPtr, StimPatches(prefs.reliabilityNum == designMat(itrial,3)), srcrect,destrect, 180-pres2orientations(k(istim)));
+        Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == max(uniqueReliabilities)), srcrect,destrect, 180-pres2orientations(k(istim)));
     end
     % ISI = toc
     Screen('flip',windowPtr);
@@ -422,18 +421,18 @@ for itrial = 1:prefs.nTrials;
     end
     
     % check response
-    [pressedKey, designMat(itrial,8)] = waitForKeys(prefs.keys,GetSecs());
+    [pressedKey, designMat(itrial,7+setsize)] = waitForKeys(prefs.keys,GetSecs());
     if pressedKey == length(prefs.keys);
         sca;
         ShowCursor;
         fclose('all');
         clear all;
     else
-        designMat(itrial,6) = prefs.keysNum(pressedKey);
+        designMat(itrial,5+setsize) = prefs.keysNum(pressedKey);
     end
     
     % calculating correct resp
-    designMat(itrial,7) = pressedKey == stimuliMat(itrial,end);
+    designMat(itrial,6+setsize) = pressedKey == stimuliMat(itrial,end);
     
     % confidence judgment
     textx = screenCenter(1) - 3*screen_ppd;
@@ -442,11 +441,11 @@ for itrial = 1:prefs.nTrials;
     Screen('TextFont',windowPtr,'Helvetica');
     Screen('DrawText',windowPtr,'Confidence?',textx,texty,[255 255 255]);
     Screen('Flip', windowPtr);
-    [designMat(itrial,9), designMat(itrial,10)] = waitForKeys(prefs.keys2,GetSecs());
+    [designMat(itrial,8+setsize), designMat(itrial,9+setsize)] = waitForKeys(prefs.keys2,GetSecs());
     
     % ITI
     if (prefs.feedback) % if sound feedback
-        if (designMat(itrial,7))
+        if (designMat(itrial,6+setsize))
             beep = MakeBeep(1200,.2);
         else
             beep = MakeBeep(500,.2);
@@ -483,7 +482,7 @@ for itrial = 1:prefs.nTrials;
     % if little feedback block break
     if ~mod(itrial,prefs.feedbacktrial) % every FEEDBACKTRIALth trial
         
-        progPC = [progPC round(100*mean(designMat(fbtrial+1:itrial,7)))];
+        progPC = [progPC round(100*mean(designMat(fbtrial+1:itrial,6+setsize)))];
         fbtrial = itrial;
         %             progPC = mean(designMat(1:i,7));
         Screen('TextSize',windowPtr,20);
@@ -527,7 +526,7 @@ textx = screenCenter(1) - 3*screen_ppd;
 texty = screenCenter(2) - 200;
 Screen('TextSize',windowPtr,20);
 Screen('TextFont',windowPtr,'Helvetica');
-Screen('DrawText',windowPtr,['End of the task. You earned ' num2str(round(100*nanmean(designMat(:,7)))) ' points!'],textx,texty,[255 255 255]); texty = texty + 5*dy;
+Screen('DrawText',windowPtr,['End of the task. You earned ' num2str(round(100*nanmean(designMat(:,6+setsize)))) ' points!'],textx,texty,[255 255 255]); texty = texty + 5*dy;
 Screen('DrawText',windowPtr,'Press any key to end.',textx,texty,[255 255 255]); texty = texty + 5*dy;
 Screen('Flip', windowPtr);
 waitForKey;

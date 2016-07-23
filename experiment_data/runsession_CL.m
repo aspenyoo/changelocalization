@@ -1,10 +1,11 @@
-function runsession_CL(subjid,sessionnum) 
+function runsession_CL(subjid,exptype,sessionnum) 
 % run a session of the second change detection task (CD2)
 
 clc;
 
 if nargin < 1; subjid = input('enter subject ID: ', 's'); end
-if nargin < 2; sessionnum = input('enter session number: '); end
+if nargin < 2; exptype = input('Delay or Contrast experiment?:','s'); end
+if nargin < 3; sessionnum = input('enter session number: '); end
 
 beepVec = [1200 1000 800 1000 1200];
 
@@ -31,13 +32,13 @@ Screen('Flip', windowPtr);
 
 switch sessionnum
     case 1; nTrialsPerCond = 3;
-    case 2; nTrialsPerCond = 2;
+    case 2; nTrialsPerCond = 3;
     case 3; nTrialsPerCond = 3;
     case 4; nTrialsPerCond = 3;
     case 98; nTrialsPerCond = 1;
 end
 
-Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond)
+Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond)
 Screen('Flip', windowPtr);
 
 % =========== THANK YOU SCREEN ==========
