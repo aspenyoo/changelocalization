@@ -66,7 +66,7 @@ X = [ones(size(designMat,1),1) X];
 clear all
 
 load('modelfits.mat')
-model = 1;
+model = 2;
 subjids = {'AHY','LA'};
 nSubj = length(subjids);
 deltaVec = 2.5:5:87.5;
