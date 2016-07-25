@@ -19,7 +19,12 @@ HideCursor;
 
 % ========== TRAINING SESSION ON FIRST DAY ==========
 if sessionnum == 1; 
-    train_loc(subjid,sessionnum,1); % 30 trials of training
+    switch exptype
+        case 'Delay'
+            train_loc_delay(subjid,sessionnum,1); % 30 trials of training
+        case 'Contrast'
+            train_loc_contrast(subjid,sessionnum,1);
+    end
     
     Snd('Open');
     for i = 1:length(beepVec);

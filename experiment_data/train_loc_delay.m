@@ -1,8 +1,9 @@
-function train_loc(subjid, sessionnum, nTrialsPerCond)
+function train_loc_delay(subjid, sessionnum, nTrialsPerCond)
 if nargin < 2; nTrialsPerCond = 5; end
 
 % training for orientation discrimination task
-prefs = prefscode('Detect','Seq',subjid);
+% prefs = prefscode('Detect','Seq',subjid);
+prefs = prefscode('Delay',subjid,sessionnum);
 
 % Screen('Preference', 'SkipSyncTests', 1);
 
@@ -57,7 +58,7 @@ if sessionnum == 1;
     
     % STIMULUS PRESENTATION 1
     setSize = 4; % max(prefs.pres1stimNum);
-    locAngles = rand*2*pi+(1:setSize)*(2*pi)/setSize;
+    locAngles = pi/4+2*pi+(1:setSize)*(2*pi)/setSize;
     stimecc = 2;
     [X, Y] = pol2cart(locAngles, screen_ppd * stimecc);
     X = X+screenCenter(1);
@@ -113,7 +114,7 @@ if sessionnum == 1;
     
     % ========== UNIFORM PRIOR OVER CHANGE ==========
     texty = screenCenter(2) - 150;
-    Screen('DrawText',windowPtr,'The orientation of one of the blobs to line will change in EVERY TRIAL.',textx,texty,[255 255 255]); texty = texty + 3*dy;
+    Screen('DrawText',windowPtr,'The orientation of one of the blobs will change in EVERY TRIAL.',textx,texty,[255 255 255]); texty = texty + 3*dy;
     Screen('DrawText',windowPtr,'The change will be random.',textx,texty,[255 255 255]); texty = texty + 5*dy;
     
     % EXAMPLES
@@ -125,7 +126,7 @@ if sessionnum == 1;
     newx = textx;
     for iexamp = 1:nExamples;
         texty = screenCenter(2) - 150;
-        Screen('DrawText',windowPtr,'The orientation of one of the blobs to line will change in EVERY TRIAL.',textx,texty,[255 255 255]); texty = texty + 3*dy;
+        Screen('DrawText',windowPtr,'The orientation of one of the blobs will change in EVERY TRIAL.',textx,texty,[255 255 255]); texty = texty + 3*dy;
         Screen('DrawText',windowPtr,'The change will be random.',textx,texty,[255 255 255]); texty = texty + 5*dy;
         
         % EXAMPLES
@@ -148,7 +149,7 @@ if sessionnum == 1;
             
             % redrawing the same stuff that was already there
             texty = screenCenter(2) - 150;
-            Screen('DrawText',windowPtr,'The orientation of one of the blobs to line will change in EVERY TRIAL.',textx,texty,[255 255 255]); texty = texty + 3*dy;
+            Screen('DrawText',windowPtr,'The orientation of one of the blobs will change in EVERY TRIAL.',textx,texty,[255 255 255]); texty = texty + 3*dy;
             Screen('DrawText',windowPtr,'The change will be random.',textx,texty,[255 255 255]); texty = texty + 5*dy;
             Screen('DrawText',windowPtr,'Examples:',textx,texty,[255 255 255]);
             Screen('DrawTexture',windowPtr,StimPatch,cuesrcrect,destrect,180-deg1);
@@ -183,7 +184,7 @@ end
 
 % ========== RUNNING TASK FOR A LITTLE ==========
 Screen('Flip', windowPtr);
-Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond,1);
+Exp_ChangeLoc(subjid, 'Delay', sessionnum, nTrialsPerCond,1);
 
 end
 

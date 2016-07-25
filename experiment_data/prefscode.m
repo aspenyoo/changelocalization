@@ -26,7 +26,7 @@ black                 = 0;
 initTrialDur = 0.25;     % larger fixation cross that initializes
 fix1Dur = 0.5;          % fixation screen in the beginning
 pres1Dur = 0.1;         % presentation 1
-pres1ISIDur = 3;    % inter-stimulus interval w/in pres1 (only for seq)
+pres1ISIDur = 2;    % inter-stimulus interval w/in pres1 (only for seq)
 pres2Dur = .100;        % will not exist when respInPres2 == 1
 ITIDur = 0.5;           % inter-trial interval
 
@@ -79,7 +79,7 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     reliabilityNum = [ones(1,max(pres1stimNum))]; % contrast for gabor
     f3 = size(reliabilityNum,1);
     
-    ISIdelayNum = [5];   % ISI delay time (sec)
+    ISIdelayNum = [1];   % ISI delay time (sec)
     f4 = length(ISIdelayNum);
 elseif strcmp(exptype(end-7:end),'Contrast')
     
@@ -107,7 +107,8 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     pres1stimNum =[4]; % stimulus set size in first presentation (or total set size if no delay time manipulation)
     f2 = length(pres1stimNum);
     
-    reliabilityNum = [ones(1,4); 1 1 .2 .2; .2*ones(1,4)]; % contrast for gabor
+    reliabilityNum = [1 .5 .3 .1]; % contrast for gabor
+%     reliabilityNum = [ones(1,4); 1 1 .2 .2; .2*ones(1,4)]; % contrast for gabor
     f3 = size(reliabilityNum,1);
     
     ISIdelayNum = [1];   % ISI delay time (sec)
@@ -116,14 +117,14 @@ elseif strcmp(exptype(end-7:end),'Contrast')
 end
 
 
-if strcmp(exptype(1:5),'Pract'); % detection task (yes/no)
+if strcmp(exptype(1:5),'Pract'); % if this is practice
     
     % info for current experiment
     expName = ['Pract' expName(4:end)]; % changing the name to have "pract" instead of "exp"
     
-    feedback = 1;        % feedback
+    feedback = 1;               % feedback
     pres1Dur = pres1Dur*2;      % twice as long ellipse presentation time
-    blocknum = 1;     % number of blocks ( 1 + number of breaks )
+    blocknum = 1;               % number of blocks ( 1 + number of breaks )
 end
 
 if sum(pres1stimNum == 1)==1;
