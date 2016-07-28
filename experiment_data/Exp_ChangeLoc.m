@@ -137,7 +137,12 @@ stimuliMat = nan(prefs.nTrials, 2*setsize + 1);
 % names of columns
 names.stimuliMat = cell(1,(2*setsize+1));
 for j = 1:setsize;
-    names.stimuliMat{j} = ['stimulus ' num2str(j) ' presentation interval'];
+    switch exptype
+        case 'Delay'
+            names.stimuliMat{j} = ['stimulus ' num2str(j) ' presentation interval'];
+        case 'Contrast'
+            names.stimuliMat{j} = ['stimulus' num2str(j) 'contrast'];
+    end
     names.stimuliMat{j+setsize} = ['stimulus' num2str(j) ' orientation (pres 1)'];
 end
 names.stimuliMat{2*setsize+1} = 'target location number';
@@ -297,23 +302,26 @@ for itrial = 1:prefs.nTrials;
     
     % the stimulus presentations
     Screen('fillRect',windowPtr,prefs.bgColor);
-    if (prefs.permLocInPres1)
+    if (prefs.permLocInPres1) % if you want to permute the locations in presentation 1
         k = randperm(setsize);
     else
         k = 1:setsize;
     end
+    stimuliMat(itrial,k) = designMat(itrial,3:2+setsize);  % position index. from top right counterclockwise. only for contrast exptype
     
     for istim = 1:setsize;
         switch prefs.stimType
             case 'ellipse'
-                srcrect = [0 0 squeeze(StimSizes(uniqueReliabilities == designMat(itrial,2+k(istim)),pres1orientations(k(istim)),:))'];
+                srcrect = [0 0 squeeze(StimSizes(uniqueReliabilities == designMat(itrial,2+istim),pres1orientations(k(istim)),:))'];
                 destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-                Screen('drawtexture',windowPtr,StimPatches(uniqueReliabilities == designMat(itrial,2+k(istim)),pres1orientations(k(istim))),srcrect,destrect,0);
+                Screen('drawtexture',windowPtr,StimPatches(uniqueReliabilities == designMat(itrial,istim),pres1orientations(k(istim))),srcrect,destrect,0);
             case 'gabor'
                 srcrect = [0 0 StimSizes];
                 destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-                Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == designMat(itrial,2+k(istim))), srcrect,destrect, 180-pres1orientations(k(istim)));
-                stimuliMat(itrial,k(istim)) = 2-(istim <= stimPerInterval(1));% index of which interval
+                Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == designMat(itrial,2+istim)), srcrect,destrect, 180-pres1orientations(k(istim)));
+                if strcmp(exptype,'Delay')
+                    stimuliMat(itrial,k(istim)) = 2-(istim <= stimPerInterval(1));% index of which interval
+                end
         end
         if ~prefs.stimPresent % sequential presentation
             if sum(istim == stimPerInterval); % flip window when the proper number of stimuli are on the screen.

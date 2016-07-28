@@ -107,7 +107,7 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     pres1stimNum =[4]; % stimulus set size in first presentation (or total set size if no delay time manipulation)
     f2 = length(pres1stimNum);
     
-    reliabilityNum = [1 .5 .3 .1]; % contrast for gabor
+    reliabilityNum = [1 1 1 1; 1 1 0.3 0.3; 0.3 0.3 0.3 0.3]; % contrast for gabor
 %     reliabilityNum = [ones(1,4); 1 1 .2 .2; .2*ones(1,4)]; % contrast for gabor
     f3 = size(reliabilityNum,1);
     

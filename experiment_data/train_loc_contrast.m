@@ -159,6 +159,39 @@ if sessionnum == 1;
     Screen('DrawText',windowPtr,'Your task is to indicate which blob changed orientation',textx,texty,[255 255 255]); texty = texty + 5*dy;
     Screen('DrawText',windowPtr,'using the number keypad',textx,texty,[255 255 255]); texty = texty + 3*dy;
     
+    % show the gabors again but with numbers instead of gabors
+    deg1 = round(rand(1,setSize).*180);
+    shift = 50;
+    X = X + shift;
+    Y = Y + shift;
+    numbers = {'1','7','9','3'};
+    drawfixation(windowPtr,screenCenter(1)+shift,screenCenter(2)+yshift+shift,prefs.fixColor,prefs.fixLength);
+    for istim = 1:setSize;
+        cuesrcrect = [0 0 StimSize];
+        destrect = CenterRectOnPoint(cuesrcrect,X(istim),Y(istim));
+        Screen('DrawTexture',windowPtr,StimPatch,cuesrcrect,destrect,180-deg1(istim));
+        Screen('DrawText',windowPtr,numbers{istim},X(istim)-10,Y(istim)-10,[255 255 255]);
+    end
+    
+    Screen('Flip', windowPtr);
+    pause;
+    
+    % ========== CONFIDENCE RESPONSE BUTTONS ===========
+    texty = screenCenter(2) - 150;
+    Screen('DrawText',windowPtr,'You will also report your confidence in your choice',textx,texty,[255 255 255]); texty = texty + 5*dy;
+    
+    keys = {'A','S','D','F'};
+    conf = {'low',' ',' ', 'high'};
+    keysize = 75;
+    shift = 100;
+    x1 = screenCenter(1)-200;
+    y1 = screenCenter(2)+shift;
+    for ikeys = 1:4;
+        Screen('DrawText',windowPtr,keys{ikeys},x1+keysize/2.7,y1+keysize/2.7,255*ones(1,3));
+        Screen('DrawText',windowPtr,conf{ikeys},x1+keysize/5,y1+100,255*ones(1,3));
+        Screen('FrameRect',windowPtr, 255*ones(1,3),[x1 y1 x1+keysize y1+keysize]);
+        x1 = x1 + shift;
+    end
     Screen('Flip', windowPtr);
     pause;
     
