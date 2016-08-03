@@ -1,4 +1,4 @@
-function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, ispractice)
+function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, nSessions, ispractice)
 % runs 2AFC experiment: orientation change detection task.
 %
 % STRUCT EXPLANATIONS
@@ -11,7 +11,8 @@ function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, ispractice)
 % ========================================================================
 if nargin < 3; sessionnum = []; end
 if nargin < 4; nTrialsPerCond = []; end
-if nargin < 5; ispractice = 0; end
+if nargin < 5; nSessions = 8; end
+if nargin < 6; ispractice = 0; end
 
 commandwindow;
 
@@ -41,8 +42,6 @@ prefs.keys2 = [KbName('a') KbName('s') KbName('d') KbName('f')];
 prefs.keysNum2 = [1 2 3 4];
 
 % Data file
-prefs.fileName = [prefs.expName '_' prefs.dateStr];
-% prefs.fidxls = fopen(fullfile('output_xls',[prefs.fileName '.xls']), 'a');
 prefs.fidmat = fullfile('output_mat',[prefs.fileName '.mat']);
 
 % calculating full experimental design and pseudo-randomizing order
@@ -80,107 +79,111 @@ HideCursor;
 setsize = max(prefs.pres1stimNum);
 
 
-% TRIAL VARIABLES
+% CREATE/LOAD TRIAL VARIABLES
 % -------------------------------------------------------------------------
 
-% DESIGN MAT: conditions and responses of experiment
-designMat = [];
-designMat(:,1) = prefs.deltaNum(prefs.design(:,1));
-designMat(:,2) = prefs.pres1stimNum(prefs.design(:,2));
-designMat(:,3:2+setsize) = prefs.reliabilityNum(prefs.design(:,3),:);
-designMat(:,3+setsize) = prefs.ISIdelayNum(prefs.design(:,4));
-designMat(:,4+setsize) = 1:prefs.nCond;
-if (prefs.vmprior)
-    designMat = repmat(designMat, [prefs.nTrialsPerCond 1]);
-    designMat(:,1) = designMat(:,1).*circ_vmrnd(0,prefs.vmprior, [size(designMat,1),1])*180/pi; %sort(repmat([-45:10:45]',[prefs.nCond 1]));
-else  % method of constant stimuli
-    if (ispractice)
-        constantStim = ceil(rand(3,1)*180-90); % 3 levels
-        constantStim(constantStim == 0) = 10;
-    else
-        constantStim = [-87.5:5:87.5]';
-        % constantStim = [-90:5:-5 5:5:85]'; % 35 levels
-    end
-    designMat = sort(repmat(designMat,[length(constantStim),1]));
-    designMat(:,1) = designMat(:,1).*repmat(constantStim,[prefs.nCond 1]);
-    designMat = repmat(designMat, [prefs.nTrialsPerCond 1]);
-end
-designMat = [designMat nan(size(designMat,1),3)];
-prefs.nTrials = size(designMat,1);
-designMat = designMat([randperm(prefs.nTrials)],:);
-designMat = [designMat nan(prefs.nTrials,2)];
-nPC = floor(prefs.nTrials/prefs.feedbacktrial);
-
-% names of variables in designMat
-names.designMat = cell(1,8);
-names.designMat{1} = 'delta'; names.designMat{2} = 'set size';
-names.designMat{3+setsize} = 'delay time';
-names.designMat{4+setsize} = 'condition number'; names.designMat{5+setsize} = 'response';
-names.designMat{6+setsize} = 'Correct?'; names.designMat{7+setsize} = 'RT';
-
-switch prefs.stimType
-    case 'ellipse'
-        names.designMat{3} = 'ellipse reliability';
-    case 'gabor'
-        names.designMat{3} = 'gabor contrast';
-end
-
-% calculating where breaks will occur
-if prefs.blocknum >1;
-    prefs.breakpoints = round((1:(prefs.blocknum-1)).*(prefs.nTrials/prefs.blocknum));
-else
-    prefs.breakpoints = prefs.nTrials+1;
-end
-
-% STIMULI MAT: screen positions, orientations, target locations
-stimuliMat = nan(prefs.nTrials, 2*setsize + 1);
-% names of columns
-names.stimuliMat = cell(1,(2*setsize+1));
-for j = 1:setsize;
-    switch exptype
-        case 'Delay'
-            names.stimuliMat{j} = ['stimulus ' num2str(j) ' presentation interval'];
-        case 'Contrast'
-            names.stimuliMat{j} = ['stimulus' num2str(j) 'contrast'];
-    end
-    names.stimuliMat{j+setsize} = ['stimulus' num2str(j) ' orientation (pres 1)'];
-end
-names.stimuliMat{2*setsize+1} = 'target location number';
-
-stimuliMat(:,end) = 1-(designMat(:,1)==0);
-stimuliMat(:,end) = ceil(rand(prefs.nTrials,1).*stimuliMat(:,end).*setsize);
-
-% target stimulus
-for itrial = 1:prefs.nTrials
+% great designMat for all sessions
+if (sessionnum == 1)
     
-    % Initial orientations
-    randOrt = round(180*rand(1,setsize));
-    stimuliMat(itrial,setsize+1:2*setsize) = randOrt;
-end
-
-% stimulus location
-randloc = 0;
-if (randloc)
-    %     for itrial = 1:prefs.nTrials
-    %         % Pick angle of first one rand and add the rest in counterclockwise
-    %         % fashion with angle spacing = 2pi/max(E.setSizeNum)
-    %         locAngles = rand*2*pi+(1:setSize)*(2*pi)/setSize;
-    %
-    %         [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
-    %         % positions with jitter
-    %         % ASPEN: OUTDATEDD
-    % %         stimuliMat(itrial,1:setSize) = X(1:setSize) + screenCenter(1)...
-    % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
-    % %         stimuliMat(itrial,setSize+1:setSize+setSize) = Y(1:setSize) + screenCenter(2)...
-    % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
-    %     end
+    % DESIGN MAT: conditions and responses of experiment
+    designMat = [];
+    designMat(:,1) = prefs.deltaNum(prefs.design(:,1));
+    designMat(:,2) = prefs.pres1stimNum(prefs.design(:,2));
+    designMat(:,3:2+setsize) = prefs.reliabilityNum(prefs.design(:,3),:);
+    designMat(:,3+setsize) = prefs.ISIdelayNum(prefs.design(:,4));
+    designMat(:,4+setsize) = 1:prefs.nCond;
+    if (prefs.vmprior)
+        designMat = repmat(designMat, [prefs.nTrialsPerCond 1]);
+        designMat(:,1) = designMat(:,1).*circ_vmrnd(0,prefs.vmprior, [size(designMat,1),1])*180/pi; %sort(repmat([-45:10:45]',[prefs.nCond 1]));
+    else  % method of constant stimuli
+        if (ispractice)
+            constantStim = ceil(rand(3,1)*180-90); % 3 levels
+            constantStim(constantStim == 0) = 10;
+        else
+            constantStim = [-87.5:5:87.5]';
+            % constantStim = [-90:5:-5 5:5:85]'; % 35 levels
+        end
+        designMat = sort(repmat(designMat,[length(constantStim),1]));
+        designMat(:,1) = designMat(:,1).*repmat(constantStim,[prefs.nCond 1]);
+        designMat = repmat(designMat, [prefs.nTrialsPerCond 1]);
+    end
+    designMat = [designMat nan(size(designMat,1),3)];
+    prefs.nTrials = size(designMat,1);
+    prefs.ncurrTrials = round(prefs.nTrials/nSessions);
+    designMat = designMat(randperm(prefs.nTrials),:);
+    designMat = [designMat nan(prefs.nTrials,2)];
+    nPC = floor(prefs.nTrials/prefs.feedbacktrial);
+    
+    % names of variables in designMat
+    names.designMat = cell(1,8);
+    names.designMat{1} = 'delta'; names.designMat{2} = 'set size';
+    names.designMat{3+setsize} = 'delay time';
+    names.designMat{4+setsize} = 'condition number'; names.designMat{5+setsize} = 'response';
+    names.designMat{6+setsize} = 'Correct?'; names.designMat{7+setsize} = 'RT';
+    
+    switch prefs.stimType
+        case 'ellipse'
+            names.designMat{3} = 'ellipse reliability';
+        case 'gabor'
+            names.designMat{3} = 'gabor contrast';
+    end
+    
+    % calculating where breaks will occur
+    if prefs.blocknum >1;
+        prefs.breakpoints = round((1:(prefs.blocknum-1)).*(prefs.nTrials/prefs.blocknum));
+    else
+        prefs.breakpoints = prefs.nTrials+1;
+    end
+    
+    % STIMULI MAT: screen positions, orientations, target locations
+    stimuliMat = nan(prefs.nTrials, 2*setsize + 1);
+    % names of columns
+    names.stimuliMat = cell(1,(2*setsize+1));
+    for j = 1:setsize;
+        switch exptype
+            case 'Delay'
+                names.stimuliMat{j} = ['stimulus ' num2str(j) ' presentation interval'];
+            case 'Contrast'
+                names.stimuliMat{j} = ['stimulus' num2str(j) 'contrast'];
+        end
+        names.stimuliMat{j+setsize} = ['stimulus' num2str(j) ' orientation (pres 1)'];
+    end
+    names.stimuliMat{2*setsize+1} = 'target location number';
+    
+    stimuliMat(:,end) = 1-(designMat(:,1)==0);
+    stimuliMat(:,end) = ceil(rand(prefs.nTrials,1).*stimuliMat(:,end).*setsize);
+    
+    % initial stimulus orientations
+    stimuliMat(:,setsize+1:2*setsize) = round(180*rand(prefs.nTrials,setsize));
+    
+    % stimulus location
+    randloc = 0;
+    if (randloc)
+        %     for itrial = 1:prefs.nTrials
+        %         % Pick angle of first one rand and add the rest in counterclockwise
+        %         % fashion with angle spacing = 2pi/max(E.setSizeNum)
+        %         locAngles = rand*2*pi+(1:setSize)*(2*pi)/setSize;
+        %
+        %         [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
+        %         % positions with jitter
+        %         % ASPEN: OUTDATEDD
+        % %         stimuliMat(itrial,1:setSize) = X(1:setSize) + screenCenter(1)...
+        % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
+        % %         stimuliMat(itrial,setSize+1:setSize+setSize) = Y(1:setSize) + screenCenter(2)...
+        % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
+        %     end
+    else
+        locAngles = pi/4-(1:setsize)*(2*pi)/setsize;
+        [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
+        x_positions = X(1:setsize) + screenCenter(1)...
+            + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
+        y_positions = Y(1:setsize) + screenCenter(2)...
+            + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
+    end
+    trial = 1; % starting on the first trial
 else
-    locAngles = pi/4-(1:setsize)*(2*pi)/setsize;
-    [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
-    x_positions = X(1:setsize) + screenCenter(1)...
-        + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
-    y_positions = Y(1:setsize) + screenCenter(2)...
-        + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
+    load(prefs.fidmat); % load previous session
+    trial = find(isnan(designMat(:,end)),1,'first'); % figure out what trial you are on
 end
 
 % matrix of all possible stimuli
@@ -229,6 +232,8 @@ end
 % ========================================================================
 dy = 30;
 textx = w/2-300;
+expTime = GetSecs();
+maxexpTime = 2*60; % 30 minutes (in seconds)
 
 if (sessionnum)
     % ====== DETECTION INFO SCREEN =======
@@ -244,7 +249,7 @@ end
 % run a trial
 % -------------------------------------------------------------------------
 fbtrial = 0; progPC = [];
-for itrial = 1:prefs.nTrials;
+for itrial = trial:prefs.ncurrTrials*nSessions;
     
     % setting values for current trial
     %     condition = designMat(itrial,5); % current condition
@@ -273,7 +278,7 @@ for itrial = 1:prefs.nTrials;
     
     % blank fixation screen
     Screen('fillRect',windowPtr,prefs.bgColor);
-    drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength); % make slightly longer fixation cross
+    drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
     t0 = GetSecs();
     % inittirladur = toc
     Screen('flip',windowPtr); % tic;
@@ -288,7 +293,7 @@ for itrial = 1:prefs.nTrials;
     
     % if nothing in first interval...
     if ~(prefs.stimPresent) && (stimPerInterval(1) == 0) % sequential presentation & nothing in first interval
-
+        
         % blank screen for stimulus duration + ISI
         Screen('fillRect',windowPtr,prefs.bgColor);
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -527,6 +532,11 @@ for itrial = 1:prefs.nTrials;
         WaitSecs(prefs.fix1Dur);
     end
     
+    if (GetSecs() - expTime) > maxexpTime;
+        save(prefs.fidmat)
+        break;
+    end
+    
 end
 
 % final screen
@@ -534,22 +544,13 @@ textx = screenCenter(1) - 3*screen_ppd;
 texty = screenCenter(2) - 200;
 Screen('TextSize',windowPtr,20);
 Screen('TextFont',windowPtr,'Helvetica');
-Screen('DrawText',windowPtr,['End of the task. You earned ' num2str(round(100*nanmean(designMat(:,6+setsize)))) ' points!'],textx,texty,[255 255 255]); texty = texty + 5*dy;
+Screen('DrawText',windowPtr,['End of this task. You earned ' num2str(round(100*nanmean(designMat(:,6+setsize)))) ' points!'],textx,texty,[255 255 255]); texty = texty + 5*dy;
 Screen('DrawText',windowPtr,'Press any key to end.',textx,texty,[255 255 255]); texty = texty + 5*dy;
 Screen('Flip', windowPtr);
 waitForKey;
 
-% =======================================================================
-% SAVE & CLOSE EVERYTHING
-% ========================================================================
-% writeTrialToFile(D, i, prefs.fidxls);
+Screen('Flip', windowPtr);
 save(prefs.fidmat)
-
-if ~(sessionnum)
-    ShowCursor;
-    sca;
-end
-
 
 % ========================================================================
 % ---------------------------HELPER FUNCTIONS-----------------------------
