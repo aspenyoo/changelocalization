@@ -36,8 +36,8 @@ y_positions = Y(1:setsize) + screenCenter(2)...
     + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
 
 % setting up design and stimulus matrices
-nlapseTrials = 50; %50
-nTrials = 500;
+nlapseTrials = 200;
+nTrials = 250;
 names.designMat = {'contrast','delta','correct'};
 names.stimuliMat = {'stim1pres1','stim2pres1','stim3pres1','stim4pres1','target_position'};
 
@@ -48,6 +48,17 @@ lapsestimuliMat = [round(rand(nlapseTrials,setsize)*180) randi(setsize,nlapseTri
 designMat = [nan(nTrials,1) 30*ones(nTrials,1) nan(nTrials,1)];
 designMat(rand(nTrials,1) > 0.5,2) = -30;
 stimuliMat = [round(rand(nTrials,setsize)*180) randi(setsize,nTrials,1)];
+
+% ================ LINE STIMULI ===================
+res = 1; % resolution
+numDegrees = ceil(180/res);
+% prefs.lineArea = prefs.stimArea; % so line is same area as ellipse
+prefs.lineWidth = 3; % pixels
+prefs.lineLength = stimLength;
+lineCoordinates = nan(2,numDegrees);
+for j = 1:numDegrees;
+    [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(prefs.lineLength,j);
+end
 
 % ===========================================================
 % =========== FULL CONTRAST (TO GET LAPSE RATE) ===========
@@ -94,10 +105,20 @@ for itrial = 1:nlapseTrials;
     
     % ========== ONE PROBE SHOWS UP. RESPONSE ===========
     stim = lapsestimuliMat(itrial,end);
-    pres2orientation = pres1orientations(stim) + lapsedesignMat(itrial,2);
     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-    destrect = CenterRectOnPoint(srcrect,x_positions(stim),y_positions(stim));
-    Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres2orientation);
+    if (prefs.lineAtPres2)
+        pres2orientation = mod(90 - pres1orientations(stim) - lapsedesignMat(itrial,2),180);
+        if (pres2orientation == 0); pres2orientation = 180; end
+        lineStim = lineCoordinates(:,pres2orientation);
+        xy = [-lineStim lineStim ];
+        Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(stim) y_positions(stim)],1);
+    else
+        pres2orientation = pres1orientations(stim) + lapsedesignMat(itrial,2);
+        destrect = CenterRectOnPoint(srcrect,x_positions(stim),y_positions(stim));
+        Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres2orientation);
+    end
+    
+
     Screen('flip',windowPtr); % tic;
     
     % check response
@@ -132,6 +153,18 @@ end
 
 lapse = 1-mean(lapsedesignMat(:,3))
 
+% ===========================================
+% INTERMEDIATE SCREEN
+% ===========================================
+
+textx = screenCenter(1) - 200;
+texty = screenCenter(2) - 200;
+Screen('TextSize',windowPtr,20);
+Screen('TextFont',windowPtr,'Helvetica');
+Screen('DrawText',windowPtr,'Now it is going to get a little harder!',textx,texty,[255 255 255]);
+Screen('Flip', windowPtr);
+pause;
+
 % =====================================
 % ADAPTIVE METHOD
 % =====================================
@@ -148,7 +181,7 @@ psy.gamma = 0.5;
 psy.range.x = [5,100,61];
 psy.range.mu = [15,40,51];
 psy.range.sigma = [5,50,25];      % The range for sigma is automatically converted to log spacing
-psy.range.lambda = [lapse-1/nlapseTrials,lapse+1/nlapseTrials,10];
+psy.range.lambda = [lapse,lapse,1];
 
 % Define priors over parameters
 psy.priors.mu = [23,5];                  % mean and std of (truncated) Gaussian prior over MU
@@ -163,7 +196,7 @@ psy.units.lambda = [];
 
 method = 'ent';     % Minimize the expected posterior entropy
 % vars = [1 0 0];   % Minimize posterior entropy of the mean only
-vars = [1 1 1];     % Minimize joint posterior entropy of mean, sigma and lambda
+vars = [1 1 0];     % Minimize joint posterior entropy of mean, sigma and lambda
 plotflag = 1;       % Plot visualization
 
 [x,psy] = psybayes(psy, method, vars, [], []); % initial point recommendation
@@ -209,12 +242,20 @@ for itrial = 1:nTrials;
     end
     
     % ========== ONE PROBE SHOWS UP. RESPONSE ===========
+    
     stim = stimuliMat(itrial,end);
-    pres2orientation = pres1orientations(stim) + designMat(itrial,2);
     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-    destrect = CenterRectOnPoint(srcrect,x_positions(stim),y_positions(stim));
-    Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres2orientation);
-    Screen('flip',windowPtr); % tic;
+    if (prefs.lineAtPres2)
+        pres2orientation = mod(90 - pres1orientations(stim) - designMat(itrial,2),180);
+        if (pres2orientation == 0); pres2orientation = 180; end
+        lineStim = lineCoordinates(:,pres2orientation);
+        xy = [-lineStim lineStim ];
+        Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(stim) y_positions(stim)],1);
+    else
+        pres2orientation = pres1orientations(stim) + designMat(itrial,2);
+        destrect = CenterRectOnPoint(srcrect,x_positions(stim),y_positions(stim));
+        Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres2orientation);
+    end
     
     % check response
     [pressedKey] = waitForKeys(prefs.keys,GetSecs());
@@ -253,15 +294,26 @@ for itrial = 1:nTrials;
     
 end
 
+% ======================================
+% save file and exit
+% ======================================
 
-% save file
 save(filename,'stimuliMat','designMat','lapsedesignMat','lapsestimuliMat','prefs','subjid','psy')
 
-% exit
-sca;
-ShowCursor;
-fclose('all');
-clear all;
+textx = screenCenter(1) - 200;
+texty = screenCenter(2) - 200;
+Screen('TextSize',windowPtr,20);
+Screen('TextFont',windowPtr,'Helvetica');
+Screen('DrawText',windowPtr,'This part of the experiment is over',textx,texty,[255 255 255]);
+Screen('DrawText',windowPtr,'Please get the experimenter',textx,texty+100,[255 255 255]);
+Screen('Flip', windowPtr);
+pause;
+
+% % exit
+% sca;
+% ShowCursor;
+% fclose('all');
+% clear all;
 
 % =========== HELPER FUNCTIONS =============
 

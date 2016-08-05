@@ -61,6 +61,7 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     respInPres2 = 1;        % does 2nd presentation stay up until S responds?
     stimPresent = 0;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
+    lineAtPres2 = 1;        % oriented line at presentation 2 (vs. a gabor or ellipse)
     
     % breaks and feedback
     blocknum = 6;           % number of blocks ( 1 + number of breaks )
@@ -92,6 +93,7 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     respInPres2 = 1;        % does 2nd presentation stay up until S responds?
     stimPresent = 1;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
+    lineAtPres2 = 1;        % oriented line at presentation 2 (vs. a gabor or ellipse)
     
     % breaks and feedback
     blocknum = 6;           % number of blocks ( 1 + number of breaks )

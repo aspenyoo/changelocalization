@@ -108,4 +108,37 @@ for isubj = 1:nSubj;
     
 end
 
+%% LOOK AT SOME STIMULI ON PSYCHTOOLBOX
+
+% line stimuli
+numDegrees = 180;
+% prefs.lineArea = prefs.stimArea; % so line is same area as ellipse
+lineWidth = 3; % pixels
+lineLength = 100;
+lineCoordinates = nan(2,numDegrees);
+for j = 1:numDegrees;
+    [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(lineLength,j);
+end
+
+% psychtoolbox
+screenNumber = max(Screen('Screens'));       % use external screen if exists
+[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
+screenCenter = [w h]/2;
+windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
+Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+lineVec = [180 30:30:150];
+nLines = length(lineVec);
+for iline = 1:nLines;
+    deg = mod(90-lineVec(iline),180);
+    if deg == 0; deg = 180; end
+    lineStim = lineCoordinates(:,deg);
+    xy = [-lineStim lineStim];
+    Screen('DrawLines',windowPtr, xy, lineWidth,256,screenCenter,1);
+    Screen('flip',windowPtr); % tic;
+    pause;
+end
+
+sca;
+ShowCursor;
 

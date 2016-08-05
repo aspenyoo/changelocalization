@@ -227,6 +227,18 @@ switch prefs.stimType
         end
 end
 
+if (prefs.lineAtPres2)
+    % ================ LINE SIMULI ===================
+    res = 1; % resolution
+    numDegrees = ceil(180/res);
+    % prefs.lineArea = prefs.stimArea; % so line is same area as ellipse
+    prefs.lineWidth = 3; % pixels
+    prefs.lineLength = stimLength;
+    lineCoordinates = nan(2,numDegrees);
+    for j = 1:numDegrees;
+        [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(prefs.lineLength,j);
+    end
+end
 % ========================================================================
 % RUN THE EXPERIMENT
 % ========================================================================
@@ -264,6 +276,10 @@ for itrial = trial:prefs.ncurrTrials*nSessions;
     pres1orientations(pres1orientations == 0) = 180;
     pres2orientations = mod(round(pres2orientations),180);
     pres2orientations(pres2orientations == 0) = 180;
+    if (prefs.lineAtPres2)
+        pres2orientations = mod(90 - pres2orientations,180);
+        if (pres2orientations == 0); pres2orientations = 180; end
+    end
     
     %     lineStim = lineCoordinates(:,pres2orientations);
     
@@ -404,13 +420,17 @@ for itrial = trial:prefs.ncurrTrials*nSessions;
     if (prefs.stimecc)
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
     end
+    srcrect = [0 0 StimSizes];
     if (prefs.allStimInPres2) % if presenting all stimuli at once
         for istim= 1:setsize % for each stimulus, draw appropriate stimulus
-            srcrect = [0 0 StimSizes];
-            destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-            Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == max(uniqueReliabilities)), srcrect,destrect, 180-pres2orientations(k(istim)));
-            %             xy = [-lineStim(:,istim) lineStim(:,istim) ];
-            %             Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(istim) y_positions(istim)],1);
+            if (prefs.lineAtPres2)
+                lineStim = lineCoordinates(:,pres2orientations(k(istim)));
+                xy = [-lineStim lineStim ];
+                Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(k(istim)) y_positions(k(istim))],1);
+            else
+                destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
+                Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == max(uniqueReliabilities)), srcrect,destrect, 180-pres2orientations(k(istim)));
+            end
         end
     else
         Screen('DrawTexture', windowPtr, StimPatches(uniqueReliabilities == max(uniqueReliabilities)), srcrect,destrect, 180-pres2orientations(k(istim)));
