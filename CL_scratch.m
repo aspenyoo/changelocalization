@@ -46,7 +46,7 @@ X = [ones(size(designMat,1),1) X];
 % [B,dev,stats] = mnrfit(X,y,'model','ordinal')
 % LL = stats.beta - 1.96*stats.se
 % UL = stats.beta + 1.96*stats.se
-% 
+%
 % % plot regression fits
 % xx = linspace(5,85,50);
 % XX = [ones(50,1) 3*ones(50,1) xx'];
@@ -127,14 +127,31 @@ screenCenter = [w h]/2;
 windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
 Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-lineVec = [180 30:30:150];
+% make gabor patch with full contrast
+stimLength = 100;
+StimSizes = [stimLength stimLength];
+reliability = 1; % contrast of 1
+im = makeGabor(stimLength, reliability);
+StimPatch= Screen('MakeTexture',windowPtr,im);
+
+
+pos = screenCenter + [100 100];
+lineVec = [30];
 nLines = length(lineVec);
 for iline = 1:nLines;
     deg = mod(90-lineVec(iline),180);
     if deg == 0; deg = 180; end
+    
+    % gabor
+    srcrect = [0 0 StimSizes];
+    destrect = CenterRectOnPoint(srcrect,pos(1),pos(2));
+    Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-90+deg);
+    
+    % line
     lineStim = lineCoordinates(:,deg);
     xy = [-lineStim lineStim];
-    Screen('DrawLines',windowPtr, xy, lineWidth,256,screenCenter,1);
+    Screen('DrawLines',windowPtr, xy, lineWidth,256,pos,1);
+    
     Screen('flip',windowPtr); % tic;
     pause;
 end
@@ -142,3 +159,42 @@ end
 sca;
 ShowCursor;
 
+
+%% FIT MOC psychometric function
+% 08.16.2016
+
+clear all
+
+mixedcontrast = 1; 
+psychofun = @(x) lambda/2 + (1-lambda).*0.5*(1+erf((x-mu)./(sqrt(2)*sigma)));
+
+if (mixedcontrast)
+    concatvars = concatcode('experiment_data/output_mat/','ContrastFn_MOC_MIX_',{'designMat','stimuliMat'});
+    v2struct(concatvars);
+%     load('ContrastFn_MOC_MIX_20160804T220952.mat')
+    designMat = designMat(stimuliMat(:,5) < 3,:);
+    titlee = 'mixed contrast';
+else
+    concatvars = concatcode('experiment_data/output_mat/','ContrastFn_MOC_AHY_',{'designMat','stimuliMat'});
+    v2struct(concatvars);
+%     load('ContrastFn_MOC_AHY_20160804T215847.mat')
+titlee = 'same contrast';
+end
+
+contrastVec = unique(designMat(:,1));
+nContrasts = length(contrastVec);
+
+PC = nan(1,nContrasts);
+for icontrast = 1:nContrasts;
+    contrast = contrastVec(icontrast);
+    
+    PC(icontrast) = nanmean(designMat(designMat(:,1) == contrast,3));
+end
+
+figure
+plot(contrastVec,PC,'ko')
+defaultplot
+xlabel('percent correct')
+ylabel('contrast')
+ylim([0.5 1])
+title(titlee)

@@ -1,4 +1,6 @@
-function get_contrastresponsefunction(subjid)
+function MOC_getcontrast(subjid)
+
+mixedcontrast = 0;  % if you want the 2 full contrast or all same contrast
 
 % open screen
 screenNumber = max(Screen('Screens'));       % use external screen if exists
@@ -14,7 +16,7 @@ commandwindow;
 % =========== SETTING EXPERIMENTAL STUFF ===========
 prefs = prefscode('Delay',subjid,2,1);
 setsize = 4;
-filename = ['output_mat/ContrastFn_' upper(subjid) '_'  datestr(now, 30) ...
+filename = ['output_mat/ContrastFn_MOC_' upper(subjid) '_'  datestr(now, 30) ...
     '.mat'];
 
 % response keys
@@ -37,18 +39,18 @@ y_positions = Y(1:setsize) + screenCenter(2)...
     + round((rand(1,setsize)-.5)*prefs.jitter*screen_ppd);
 
 % setting up design and stimulus matrices
-nlapseTrials = 200;
-nTrials = 250;
+nTrialsperContrast = 20;
+if (mixedcontrast); nTrialsperContrast = 40; end
+contrastVec = exp(linspace(log(.05),log(1),10)); % 10 contrasts linearly spaced in log space
+nTrials = 10*nTrialsperContrast;
+
+designMat = [repmat(contrastVec',nTrialsperContrast,1) 30*ones(nTrials,1) nan(nTrials,1)];
+designMat(rand(nTrials,1) > 0.5,2) = -30;
+designMat(randperm(nTrials),:) = designMat;  % permuting trials
+stimuliMat = [round(rand(nTrials,setsize)*180) randi(setsize,nTrials,1)];
+
 names.designMat = {'contrast','delta','correct'};
 names.stimuliMat = {'stim1pres1','stim2pres1','stim3pres1','stim4pres1','target_position'};
-
-lapsedesignMat = [ones(nlapseTrials,1) 30*ones(nlapseTrials,1) nan(nlapseTrials,1)];
-lapsedesignMat(rand(nlapseTrials,1) > 0.5,2) = -30;
-lapsestimuliMat = [round(rand(nlapseTrials,setsize)*180) randi(setsize,nlapseTrials,1)];
-
-designMat = [nan(nTrials,1) 30*ones(nTrials,1) nan(nTrials,1)];
-designMat(rand(nTrials,1) > 0.5,2) = -30;
-stimuliMat = [round(rand(nTrials,setsize)*180) randi(setsize,nTrials,1)];
 
 % ================ LINE STIMULI ===================
 res = 1; % resolution
@@ -61,110 +63,20 @@ for j = 1:numDegrees;
     [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(prefs.lineLength,j);
 end
 
-% load('ContrastFn_AHY_20160804T201620.mat')
-% % ===========================================================
-% % =========== FULL CONTRAST (TO GET LAPSE RATE) ===========
-% % ===========================================================
-% 
-% % make gabor patch with full contrast
+% make gabor patch with full contrast
 reliability = 1; % contrast of 1
 im = makeGabor(stimLength, reliability);
 StimPatch1= Screen('MakeTexture',windowPtr,im);
-% 
-% for itrial = 1:nlapseTrials;
-%     
-%     % ========== FIXATION FOR BEGINNING OF TRIAL ==========
-%     Screen('fillRect',windowPtr,prefs.bgColor);
-%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-%     t0 = GetSecs();
-%     % inittirladur = toc
-%     Screen('flip',windowPtr); % tic;
-%     while (GetSecs()-t0)<prefs.fix1Dur;
-%         % do nothing
-%     end
-%     
-%     % ========== PRESENT STIMULI FOR FIRST TIME ===========
-%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-%     pres1orientations = lapsestimuliMat(itrial,1:setsize);
-%     for istim = 1:setsize;
-%         srcrect = [0 0 StimSizes];
-%         destrect = CenterRectOnPoint(srcrect,x_positions(istim),y_positions(istim));
-%         Screen('DrawTexture', windowPtr, StimPatch1, srcrect,destrect, 180-pres1orientations(istim));
-%     end
-%     Screen('flip',windowPtr); % tic;
-%     t0 = GetSecs();
-%     while (GetSecs()-t0)<prefs.pres1Dur;
-%         % do nothing
-%     end
-%     
-%     % ========== ISI ===========
-%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-%     Screen('flip',windowPtr); % tic;
-%     t0 = GetSecs();
-%     while (GetSecs()-t0)<prefs.ISIdelayNum;
-%         % do nothing
-%     end
-%     
-%     % ========== ONE PROBE SHOWS UP. RESPONSE ===========
-%     stim = lapsestimuliMat(itrial,end);
-%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-%     if (prefs.lineAtPres2)
-%         pres2orientation = mod(90 - pres1orientations(stim) - lapsedesignMat(itrial,2),180);
-%         if (pres2orientation == 0); pres2orientation = 180; end
-%         lineStim = lineCoordinates(:,pres2orientation);
-%         xy = [-lineStim lineStim ];
-%         Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(stim) y_positions(stim)],1);
-%     else
-%         pres2orientation = pres1orientations(stim) + lapsedesignMat(itrial,2);
-%         destrect = CenterRectOnPoint(srcrect,x_positions(stim),y_positions(stim));
-%         Screen('DrawTexture', windowPtr, StimPatch1, srcrect,destrect, 180-pres2orientation);
-%     end
-%     
-% 
-%     Screen('flip',windowPtr); % tic;
-%     
-%     % check response
-%     [pressedKey] = waitForKeys(prefs.keys,GetSecs());
-%     if pressedKey == length(prefs.keys);
-%         sca;
-%         ShowCursor;
-%         fclose('all');
-%         clear all;
-%     else
-%         %         designMat(itrial,5+setsize) = prefs.keysNum(pressedKey);
-%     end
-%     
-%     % check whether it is correct or not
-%     if (sign(lapsedesignMat(itrial,2)/prefs.keysNum(pressedKey)) == 1) % if correct
-%         lapsedesignMat(itrial,3) = 1;
-%     else
-%         lapsedesignMat(itrial,3) = 0;
-%     end
-%     
-%     % ========== ITI ===========
-%     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
-%     Screen('flip',windowPtr); % tic;
-%     t0 = GetSecs();
-%     while (GetSecs()-t0)<prefs.ITIDur;
-%         % do nothingqs
-%     end
-%     
-%     % save file
-%     save(filename,'stimuliMat','designMat','lapsedesignMat','lapsestimuliMat','prefs','subjid')
-% end
-% 
-% lapse = 1-mean(lapsedesignMat(:,3))
-lapse = 0.3;
 
 % ===========================================
-% INTERMEDIATE SCREEN
+% STARTING SCREEN
 % ===========================================
 
 textx = screenCenter(1) - 200;
 texty = screenCenter(2) - 200;
 Screen('TextSize',windowPtr,20);
 Screen('TextFont',windowPtr,'Helvetica');
-Screen('DrawText',windowPtr,'Now it is going to get a little harder!',textx,texty,[255 255 255]);
+Screen('DrawText',windowPtr,'Push any key to begin',textx,texty,[255 255 255]);
 Screen('Flip', windowPtr);
 pause;
 
@@ -172,43 +84,9 @@ pause;
 % ADAPTIVE METHOD
 % =====================================
 
-% ========== INITIALIZE PSYBAYES ==========
-psy = [];       % Initialize PSY structure
-
-% Set chance level (for PCORRECT psychometric functions)
-psy.gamma = 0.5;
-% psyinit.gamma = [];   % Leave it empty for YES/NO psychometric functions
-
-% Define range for stimulus and for parameters of the psychometric function
-% (lower bound, upper bound, number of points)
-psy.range.x = [log(5),log(100),61];
-psy.range.mu = [log(15),log(40),51];
-psy.range.sigma = [log(5),log(50),25];      % The range for sigma is automatically converted to log spacing
-psy.range.lambda = [lapse,lapse,1];
-
-% Define priors over parameters
-psy.priors.mu = [log(23),log(5)];                  % mean and std of (truncated) Gaussian prior over MU
-psy.priors.logsigma = [log(log(20)),Inf];   % mean and std of (truncated) Gaussian prior over log SIGMA (Inf std means flat prior)
-psy.priors.lambda = [1 3];             % alpha and beta parameter of beta pdf over LAMBDA
-
-% Units -- used just for plotting in axis labels and titles
-psy.units.x = 'percent contrast';
-psy.units.mu = 'percent contrast';
-psy.units.sigma = 'percent contrast';
-psy.units.lambda = [];
-
-method = 'ent';     % Minimize the expected posterior entropy
-% vars = [1 0 0];   % Minimize posterior entropy of the mean only
-vars = [1 1 0];     % Minimize joint posterior entropy of mean, sigma and lambda
-plotflag = 1;       % Plot visualization
-
-[x,psy] = psybayes(psy, method, vars, [], []); % initial point recommendation
-
 for itrial = 1:nTrials;
     
     % ========== MAKE STIM PATCH ==============
-    exp(x)/100
-    designMat(itrial,1) = exp(x)/100;
     im = makeGabor(stimLength, designMat(itrial,1));
     StimPatch= Screen('MakeTexture',windowPtr,im);
     
@@ -234,7 +112,11 @@ for itrial = 1:nTrials;
     for istim = (setsize/2)+1:setsize; % making half of them full contrast
         srcrect = [0 0 StimSizes];
         destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-        Screen('DrawTexture', windowPtr, StimPatch1, srcrect,destrect, 180-pres1orientations(k(istim)));
+        if (mixedcontrast)
+            Screen('DrawTexture', windowPtr, StimPatch1, srcrect,destrect, 180-pres1orientations(k(istim)));
+        else
+            Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres1orientations(k(istim)));
+        end
     end
     Screen('flip',windowPtr); % tic;
     t0 = GetSecs();
@@ -252,17 +134,17 @@ for itrial = 1:nTrials;
     
     % ========== ONE PROBE SHOWS UP. RESPONSE ===========
     
-    stim = k(randi(2));
+    stim = stimuliMat(itrial,end);
     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
     if (prefs.lineAtPres2)
-        pres2orientation = mod(90 - pres1orientations(stim) - designMat(itrial,2),180);
+        pres2orientation = mod(90 - pres1orientations(k(stim)) - designMat(itrial,2),180);
         if (pres2orientation == 0); pres2orientation = 180; end
         lineStim = lineCoordinates(:,pres2orientation);
         xy = [-lineStim lineStim ];
-        Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(stim) y_positions(stim)],1);
+        Screen('DrawLines',windowPtr, xy, prefs.lineWidth,prefs.stimColor,[x_positions(k(stim)) y_positions(k(stim))],1);
     else
-        pres2orientation = pres1orientations(stim) + designMat(itrial,2);
-        destrect = CenterRectOnPoint(srcrect,x_positions(stim),y_positions(stim));
+        pres2orientation = pres1orientations(k(stim)) + designMat(itrial,2);
+        destrect = CenterRectOnPoint(srcrect,x_positions(k(stim)),y_positions(k(stim)));
         Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres2orientation);
     end
     Screen('flip',windowPtr); % tic;
@@ -293,14 +175,9 @@ for itrial = 1:nTrials;
         % do nothingqs
     end
     
-    % pick next contrast point and save file
-    [x, psy] = psybayes(psy, method, vars, x, designMat(itrial,3));
-    save(filename,'stimuliMat','designMat','lapsedesignMat','lapsestimuliMat','prefs','subjid','psy')
-    
-    if plotflag
-        psybayes_plot(psy);
-        drawnow;
-    end
+    % save file
+    save(filename,'stimuliMat','designMat','prefs','subjid')
+
     
 end
 
@@ -308,7 +185,7 @@ end
 % save file and exit
 % ======================================
 
-save(filename,'stimuliMat','designMat','lapsedesignMat','lapsestimuliMat','prefs','subjid','psy')
+save(filename,'stimuliMat','designMat','prefs','subjid')
 
 textx = screenCenter(1) - 200;
 texty = screenCenter(2) - 200;
