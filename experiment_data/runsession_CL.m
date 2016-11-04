@@ -7,6 +7,7 @@ if nargin < 1; subjid = input('enter subject ID: ', 's'); end
 if nargin < 2; sessionnum = input('enter session number: '); end
 
 beepVec = [1200 1000 800 1000 1200];
+nSessions = 6;
 
 screenNumber = max(Screen('Screens'));       % use external screen if exists
 [w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
@@ -17,7 +18,7 @@ Screen('TextFont',windowPtr,'Helvetica');
 HideCursor;
 
 % pick out whether contrast or delay is first
-if mod(sessionnum,2)
+if ~mod(sessionnum,2)
     exptype1 = 'Contrast';
     exptype2 = 'Delay';
 else
@@ -25,15 +26,11 @@ else
     exptype2 = 'Contrast';
 end
 
-switch sessionnum
-    case 1; nTrialsPerCond = 3;
-    case 2; nTrialsPerCond = 3;
-    case 3; nTrialsPerCond = 3;
-    case 4; nTrialsPerCond = 3;
-    case 98; nTrialsPerCond = 1;
-end
-
 % ========== TRAINING SESSION ON FIRST DAY ==========
+
+if sessionnum == 1; 
+   training_getcontrast(subjid) 
+end
 % if sessionnum == 1; 
 %     switch exptype1
 %         case 'Delay'
@@ -54,23 +51,27 @@ end
 % end
 Screen('Flip', windowPtr);
 
-% ========== FIRST TASK (CONTRAST AND DELAY COUNTERBALANCED) ============
-
-Exp_ChangeLoc(subjid, exptype1, sessionnum, nTrialsPerCond)
-Screen('Flip', windowPtr);
-
-% ========== BREAK SCREEN TO MAKE THE PARTICIPANT MOVE =============
-textx = 400;
-texty = h/2 - 150;
-Screen('DrawText',windowPtr,'Please find your experimenter for caffeine.',textx,texty,[255 255 255]);
-Screen('Flip', windowPtr);
-pause;
-
-% =========== SECOND TASK (DELAY AND CONTRAST COUNTERBALANCED) ==========
-
-Exp_ChangeLoc(subjid, exptype2, sessionnum, nTrialsPerCond)
-Screen('Flip', windowPtr);
-
+if ~(sessionnum == 1)
+    
+    expsession = sessionnum - 1;
+    if (expsession == 1); nTrialsPerCond = 10; else nTrialsPerCond = []; end
+    % ========== FIRST TASK (CONTRAST AND DELAY COUNTERBALANCED) ============
+    
+    Exp_ChangeLoc(subjid, exptype1, expsession, nTrialsPerCond, nSessions)
+    Screen('Flip', windowPtr);
+    
+    % ========== BREAK SCREEN TO MAKE THE PARTICIPANT MOVE =============
+    textx = 400;
+    texty = h/2 - 150;
+    Screen('DrawText',windowPtr,'Please find your experimenter for caffeine.',textx,texty,[255 255 255]);
+    Screen('Flip', windowPtr);
+    pause;
+    
+    % =========== SECOND TASK (DELAY AND CONTRAST COUNTERBALANCED) ==========
+    
+    Exp_ChangeLoc(subjid, exptype2, expsession, nTrialsPerCond, nSessions)
+    Screen('Flip', windowPtr);
+end
 % =========== THANK YOU SCREEN ==========
 Screen('DrawText',windowPtr,'Thanks for participating!',textx,texty,[255 255 255]);
 

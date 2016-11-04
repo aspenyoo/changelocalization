@@ -1,8 +1,10 @@
 function MOC_getcontrast(subjid)
 
-mixedcontrast = 0;  % if you want the 2 full contrast or all same contrast
+mixedcontrast = 1;  % if you want the 2 full contrast or all same contrast
 
 % open screen
+Screen('Preference', 'ConserveVRAM', 64);
+Screen('Preference', 'SkipSyncTests', 1);
 screenNumber = max(Screen('Screens'));       % use external screen if exists
 [w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
 screenCenter = [w h]/2;    
@@ -45,7 +47,7 @@ contrastVec = exp(linspace(log(.05),log(1),10)); % 10 contrasts linearly spaced 
 nTrials = 10*nTrialsperContrast;
 
 designMat = [repmat(contrastVec',nTrialsperContrast,1) 30*ones(nTrials,1) nan(nTrials,1)];
-designMat(rand(nTrials,1) > 0.5,2) = -30;
+designMat(rand(nTrials,1) > 0.5,2) = -30; % making approx half clockwise
 designMat(randperm(nTrials),:) = designMat;  % permuting trials
 stimuliMat = [round(rand(nTrials,setsize)*180) randi(setsize,nTrials,1)];
 
@@ -109,15 +111,15 @@ for itrial = 1:nTrials;
         destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
         Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres1orientations(k(istim)));
     end
-    for istim = (setsize/2)+1:setsize; % making half of them full contrast
-        srcrect = [0 0 StimSizes];
-        destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
-        if (mixedcontrast)
-            Screen('DrawTexture', windowPtr, StimPatch1, srcrect,destrect, 180-pres1orientations(k(istim)));
-        else
-            Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres1orientations(k(istim)));
-        end
-    end
+%     for istim = (setsize/2)+1:setsize; % making half of them full contrast
+%         srcrect = [0 0 StimSizes];
+%         destrect = CenterRectOnPoint(srcrect,x_positions(k(istim)),y_positions(k(istim)));
+%         if (mixedcontrast)
+%             Screen('DrawTexture', windowPtr, StimPatch1, srcrect,destrect, 180-pres1orientations(k(istim)));
+%         else
+%             Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-pres1orientations(k(istim)));
+%         end
+%     end
     Screen('flip',windowPtr); % tic;
     t0 = GetSecs();
     while (GetSecs()-t0)<prefs.pres1Dur;

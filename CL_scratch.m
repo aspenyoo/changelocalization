@@ -1,3 +1,10 @@
+%% % % % % % % % % % % % % % % % % % % % % % % % % 
+%    BETA DISTRIBUTION
+% % % % % % % % % % % % % % % % % % % % % % % % % 
+xx = linspace(0,1,100);
+plot(xx,betapdf(xx,1.3,4))
+
+
 %% logistic regression: pc ~ condition + delta
 clear all
 clc
@@ -136,7 +143,7 @@ StimPatch= Screen('MakeTexture',windowPtr,im);
 
 
 pos = screenCenter + [100 100];
-lineVec = [30];
+lineVec = [0 30];
 nLines = length(lineVec);
 for iline = 1:nLines;
     deg = mod(90-lineVec(iline),180);
@@ -166,16 +173,17 @@ ShowCursor;
 clear all
 
 mixedcontrast = 1; 
+subjid = 'AMM';
 psychofun = @(x) lambda/2 + (1-lambda).*0.5*(1+erf((x-mu)./(sqrt(2)*sigma)));
 
 if (mixedcontrast)
-    concatvars = concatcode('experiment_data/output_mat/','ContrastFn_MOC_MIX_',{'designMat','stimuliMat'});
+    concatvars = concatcode('experiment_data/output_mat/',['ContrastFn_MOC_' subjid '_'],{'designMat','stimuliMat'});
     v2struct(concatvars);
 %     load('ContrastFn_MOC_MIX_20160804T220952.mat')
-    designMat = designMat(stimuliMat(:,5) < 3,:);
+    designMat = designMat(stimuliMat(:,5) >= 3,:);
     titlee = 'mixed contrast';
 else
-    concatvars = concatcode('experiment_data/output_mat/','ContrastFn_MOC_AHY_',{'designMat','stimuliMat'});
+    concatvars = concatcode('experiment_data/output_mat/',['ContrastFn_MOC_' subjid '_'],{'designMat','stimuliMat'});
     v2struct(concatvars);
 %     load('ContrastFn_MOC_AHY_20160804T215847.mat')
 titlee = 'same contrast';
@@ -192,9 +200,9 @@ for icontrast = 1:nContrasts;
 end
 
 figure
-plot(contrastVec,PC,'ko')
+plot((contrastVec),PC,'k*')
 defaultplot
-xlabel('percent correct')
-ylabel('contrast')
+ylabel('percent correct')
+xlabel('contrast')
 ylim([0.5 1])
 title(titlee)

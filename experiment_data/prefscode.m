@@ -8,7 +8,6 @@ if nargin < 1; exptype = input('Delay/Contrast: ','s');end
 if isempty(subjid); subjid = input('enter subject ID: ', 's'); end
 
 subjid = upper(subjid);
-dateStr = datestr(now, 30);
 
 %=========================================================================
 % THINGS THAT ALL EXPERIMENTS SHOULD HAVE IN COMMON
@@ -23,7 +22,7 @@ grey                  = 128;  % background
 black                 = 0;
 
 % experiment timing (sec)
-initTrialDur = 0.25;     % larger fixation cross that initializes
+initTrialDur = 0;     % larger fixation cross that initializes
 fix1Dur = 0.5;          % fixation screen in the beginning
 pres1Dur = 0.1;         % presentation 1
 pres1ISIDur = 2;    % inter-stimulus interval w/in pres1 (only for seq)
@@ -36,7 +35,7 @@ bgColor         = grey;             % background color
 stimColor       = lightgrey;        % stimulus color
 fixLength       = 7;                % fixation cross length
 fixColor        = black;            % fixation cross color
-jitter          = 0;                % amount of x/y-jitter (deg)
+jitter          = 0.5;                % amount of x/y-jitter (deg)
 stimecc         = 5;                % stimulus eccentricity (deg)
 stimArea        = 2.25; %(1.5^2)    % stimulus area (deg).
 stimType        = 'gabor';          % stimulus type
@@ -61,10 +60,12 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     respInPres2 = 1;        % does 2nd presentation stay up until S responds?
     stimPresent = 0;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
-    lineAtPres2 = 1;        % oriented line at presentation 2 (vs. a gabor or ellipse)
+    lineAtPres2 = 0;        % oriented line at presentation 2 (vs. a gabor or ellipse)
+    fixationinITI =  0;     % if fixation cross shown during ITI
+%     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
     % breaks and feedback
-    blocknum = 6;           % number of blocks ( 1 + number of breaks )
+    blocknum = 2;           % number of blocks ( 1 + number of breaks )
     breakDuration = 20;     % duration of each break between blocks (sec)
     feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
     
@@ -82,6 +83,7 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     
     ISIdelayNum = [1];   % ISI delay time (sec)
     f4 = length(ISIdelayNum);
+    
 elseif strcmp(exptype(end-7:end),'Contrast')
     
     % yes(1)/no(0)
@@ -93,12 +95,26 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     respInPres2 = 1;        % does 2nd presentation stay up until S responds?
     stimPresent = 1;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
-    lineAtPres2 = 1;        % oriented line at presentation 2 (vs. a gabor or ellipse)
+    lineAtPres2 = 0;        % oriented line at presentation 2 (vs. a gabor or ellipse)
+    fixationinITI =  0;     % if fixation cross shown during ITI
+%     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
     % breaks and feedback
-    blocknum = 6;           % number of blocks ( 1 + number of breaks )
+    blocknum = 2;           % number of blocks ( 1 + number of breaks )
     breakDuration = 20;     % duration of each break between blocks (sec)
     feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
+    
+    % figure out low contrast value
+    try 
+        lowcontrastval = calculate_bestcontrast(subjid);
+    catch 
+        YN = input('Could not calculate low contrast value for subject. Continue with 0.3? Y/N: ','s');
+        if strcmp(upper(YN),'Y');
+            lowcontrastval = 0.3;
+        else
+            error('need to specify low contrat value')
+        end
+    end
     
     % experimental design
     deltaNum = [1]; %
@@ -109,7 +125,10 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     pres1stimNum =[4]; % stimulus set size in first presentation (or total set size if no delay time manipulation)
     f2 = length(pres1stimNum);
     
-    reliabilityNum = [1 1 1 1; 1 1 0.3 0.3; 0.3 0.3 0.3 0.3]; % contrast for gabor
+    reliabilityNum = [1 1 1 1; ...
+                      1 1 lowcontrastval lowcontrastval; ...
+                      1 1 lowcontrastval lowcontrastval; ...
+                      lowcontrastval*ones(1,4)]; % contrasts of gabors
 %     reliabilityNum = [ones(1,4); 1 1 .2 .2; .2*ones(1,4)]; % contrast for gabor
     f3 = size(reliabilityNum,1);
     
