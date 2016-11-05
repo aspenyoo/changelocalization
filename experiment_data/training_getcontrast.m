@@ -97,10 +97,10 @@ screenHeight    = 30.5;               % in cm (Dell@T115A: ~48cm; Dell@T101C: ~4
 screenDistance  = 40;
 bgColor         = 128;              % background color
 stimColor       = 200;              % stimulus color
-fixLength       = 7;                % fixation cross length
+fixLength       = 0.2;                % fixation cross length (DVA)
 fixColor        = 0;                % fixation cross color
-jitter          = 0.5;                % amount of x/y-jitter (deg)
-stimecc         = 5;                % stimulus eccentricity (deg)
+jitter          = 0.5;                % amount of x/y-jitter (dva)
+stimecc         = 5;                % stimulus eccentricity (dva)
 stimArea        = 2.25; %(1.5^2)    % stimulus area (deg).
 
 % file saving stuff
@@ -118,9 +118,14 @@ screen_ppd = h / screenAngle;  % pixels per degree
 stimArea = stimArea * screen_ppd^2; % stimulus area (pixels)
 stimLength = round(sqrt(stimArea));
 srcrect = [0 0 stimLength stimLength];
+fixLength = round(fixLength*screen_ppd);
 
 % open screen
-windowPtr = Screen('OpenWindow',screenNumber,128,[],32,2);
+% if isempty(sessionnum)
+%     windowPtr = Screen('OpenWindow',screenNumber,prefs.grey,[],32,2);
+% else
+    windowPtr = 10;
+% end
 Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 HideCursor;
 

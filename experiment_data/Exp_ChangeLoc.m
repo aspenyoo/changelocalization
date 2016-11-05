@@ -63,6 +63,7 @@ screenAngle = atand((prefs.screenHeight/2) / screenDistance) ; % total visual an
 screen_ppd = h / screenAngle;  % pixels per degree
 prefs.stimArea = prefs.stimArea * screen_ppd^2; % stimulus area (pixels)
 stimLength = round(sqrt(prefs.stimArea));
+prefs.fixLength = round(prefs.fixLength*screen_ppd);
 
 % open screen
 if isempty(sessionnum)

@@ -30,13 +30,13 @@ pres2Dur = .100;        % will not exist when respInPres2 == 1
 ITIDur = 0.5;           % inter-trial interval
 
 % display settings
-screenHeight    = 30.5;               % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
+screenHeight    = 30.5;             % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
 bgColor         = grey;             % background color
 stimColor       = lightgrey;        % stimulus color
-fixLength       = 7;                % fixation cross length
+fixLength       = 0.2;              % fixation cross length (dva)
 fixColor        = black;            % fixation cross color
-jitter          = 0.5;                % amount of x/y-jitter (deg)
-stimecc         = 5;                % stimulus eccentricity (deg)
+jitter          = 0.5;              % amount of x/y-jitter (dva)
+stimecc         = 5;                % stimulus eccentricity (dva)
 stimArea        = 2.25; %(1.5^2)    % stimulus area (deg).
 stimType        = 'gabor';          % stimulus type
 
