@@ -33,7 +33,7 @@ ITIDur = 0.5;           % inter-trial interval
 screenHeight    = 30.5;             % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
 bgColor         = grey;             % background color
 stimColor       = lightgrey;        % stimulus color
-fixLength       = 0.2;              % fixation cross length (dva)
+fixLength       = 0.15;              % fixation cross length (dva)
 fixColor        = black;            % fixation cross color
 jitter          = 0.5;              % amount of x/y-jitter (dva)
 stimecc         = 5;                % stimulus eccentricity (dva)
@@ -65,7 +65,7 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
 %     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
     % breaks and feedback
-    blocknum = 2;           % number of blocks ( 1 + number of breaks )
+    blocknum = 1;           % number of blocks ( 1 + number of breaks )
     breakDuration = 20;     % duration of each break between blocks (sec)
     feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
     
@@ -100,7 +100,7 @@ elseif strcmp(exptype(end-7:end),'Contrast')
 %     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
     % breaks and feedback
-    blocknum = 2;           % number of blocks ( 1 + number of breaks )
+    blocknum = 1;           % number of blocks ( 1 + number of breaks )
     breakDuration = 20;     % duration of each break between blocks (sec)
     feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
     
@@ -110,7 +110,7 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     catch 
         YN = input('Could not calculate low contrast value for subject. Continue with 0.3? Y/N: ','s');
         if strcmp(upper(YN),'Y');
-            lowcontrastval = 0.3;
+            lowcontrastval = 0.1;
         else
             error('need to specify low contrat value')
         end

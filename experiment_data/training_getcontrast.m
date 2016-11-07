@@ -1,4 +1,6 @@
-function training_getcontrast(subjid)
+function training_getcontrast(subjid,pickup)
+
+if nargin < 2; pickup = 0; end
 
 % ==================================================
 %   INITIAL EXPERIMENTAL STUFF
@@ -11,75 +13,117 @@ nTrialsperCond = 150;
 nTrials = nCond*nTrialsperCond;
 names.designMat = {'amnt change','logconstrast1','logcontrast2','target loc','resp','RT','correct?'};
 
-designMat = nan(nTrials,length(names.designMat));  % all the experimental stuff
-temp = [repmat(changeVec,1,nTrialsperCond/2) -repmat(changeVec,1,nTrialsperCond)]; % half are negative
-designMat(:,1) = temp(randperm(nTrials));  % pseudorandom shuffling
-designMat(:,4) = ceil(rand(nTrials,1)*4);
 
-% initializing stuff for each condition
-psy = [];
+% file saving stuff
+if nargin < 1; subjid = input('enter subject ID: ', 's'); end
+subjid = upper(subjid);
+fidmat = fullfile('output_mat',['Training_ChangeLocalization_' subjid '.mat']);
+
+% psy preferences
 method = 'ent';     % Minimize the expected posterior entropy
 vars = [1 1 1];     % Minimize posterior entropy of mean and sigma
-for icond = 1:nCond;
-    condstring = changeVecNames{icond};  % condition string used for structs
+
+if (pickup)
+    % load file
+    load(fidmat)
     
-    % get list of trials in that condiiton
-    trials.(condstring) = find(abs(designMat(:,1)) == changeVec(icond));
+    for icond = 1:nCond;
+        condstring = changeVecNames{icond};  % condition string used for structs
+        
+        % get list of trials in that condition
+        trials.(condstring) = find(abs(designMat(:,1)) == changeVec(icond));
+        
+        % delete those already done
+        while ~isnan(designMat(trials.(condstring)(1),2))
+            trials.(condstring)(1) = [];
+        end
+    end
     
-    % ========== initialize psy struct for each condition ==========
-    % Initialize PSY structure
-    psy.(condstring) = [];
+    % which trial to start at
+    starttrial = find(isnan(designMat(:,3)),1,'first'); 
     
-    % Set chance level (for PCORRECT psychometric functions)
-    psy.(condstring).gamma = 0.25;
+    % set size
+    setsize = size(stimuliMat,2)/3;
     
-    % Specify user-defined psychometric function (as a string)
-    psy.(condstring).psychofun{1} = '@(x,mu,sigma,lambda,gamma) psyfun_pcorrect(x,mu,sigma,lambda,gamma,@psygumbelcdf);';
-    psy.(condstring).psychofun{2} = '@(x,mu,sigma,lambda,gamma) psyfun_pcorrect(x,mu,sigma,lambda,gamma,@psynormcdf);';
-    psy.(condstring).psychofun{3} = '@(x,mu,sigma,lambda,gamma) psyfun_pcorrect(x,mu,sigma,lambda,gamma,@psylogicdf);';
+    screenNumber = max(Screen('Screens'));       % use external screen if exists
+    [w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
+    windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
+    Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    Screen('TextSize',windowPtr,20);
+    Screen('TextFont',windowPtr,'Helvetica');
+    HideCursor;
     
-    % Define range for stimulus and for parameters of the psychometric function
-    % (lower bound, upper bound, number of points)
-    MinContrast = 1;     % Minimum contrast
-    psy.(condstring).range.x = [log(MinContrast),log(100),21];      % Stimulus range in log Hz
-    psy.(condstring).range.mu = [log(MinContrast),log(50),31];     % Psychometric function mean in log Hz
-    psy.(condstring).range.sigma = [0.1,4,19];                   % The range for sigma is automatically converted to log spacing
-    psy.(condstring).range.lambda = [0,0.5,21];
-    % psy.range.lambda = [0.05-eps,0.05+eps,2];  % This would fix the lapse rate to 0.05
+else
     
-    % Define priors over parameters
-    psy.(condstring).priors.mu = [log(MinContrast),4];   % mean and std of (truncated) Gaussian prior over MU
-    psy.(condstring).priors.logsigma = [0,1];        % mean and std of (truncated) Gaussian prior over log SIGMA (Inf std means flat prior)
-    psy.(condstring).priors.lambda = [1.3 4];         % alpha and beta parameters of beta pdf over LAMBDA
+    starttrial = 1; % start trial on trial 1
+    designMat = nan(nTrials,length(names.designMat));  % all the experimental stuff
+    temp = [repmat(changeVec,1,nTrialsperCond/2) -repmat(changeVec,1,nTrialsperCond)]; % half are negative
+    designMat(:,1) = temp(randperm(nTrials));  % pseudorandom shuffling
+    designMat(:,4) = ceil(rand(nTrials,1)*4);
     
-    % Units -- used just for plotting in axis labels and titles
-    psy.(condstring).units.x = 'log';
-    psy.(condstring).units.mu = 'log';
-    psy.(condstring).units.sigma = 'log';
-    psy.(condstring).units.lambda = [];
-    psy.(condstring).units.psychofun = {'Gumbel','Normal','Logistic'};
+    % initializing stuff for each condition
+    psy = [];
+    for icond = 1:nCond;
+        condstring = changeVecNames{icond};  % condition string used for structs
+        
+        % get list of trials in that condiiton
+        trials.(condstring) = find(abs(designMat(:,1)) == changeVec(icond));
+        
+        % ========== initialize psy struct for each condition ==========
+        % Initialize PSY structure
+        psy.(condstring) = [];
+        
+        % Set chance level (for PCORRECT psychometric functions)
+        psy.(condstring).gamma = 0.25;
+        
+        % Specify user-defined psychometric function (as a string)
+        psy.(condstring).psychofun{1} = '@(x,mu,sigma,lambda,gamma) psyfun_pcorrect(x,mu,sigma,lambda,gamma,@psygumbelcdf);';
+        psy.(condstring).psychofun{2} = '@(x,mu,sigma,lambda,gamma) psyfun_pcorrect(x,mu,sigma,lambda,gamma,@psynormcdf);';
+        psy.(condstring).psychofun{3} = '@(x,mu,sigma,lambda,gamma) psyfun_pcorrect(x,mu,sigma,lambda,gamma,@psylogicdf);';
+        
+        % Define range for stimulus and for parameters of the psychometric function
+        % (lower bound, upper bound, number of points)
+        MinContrast = 1;     % Minimum contrast
+        psy.(condstring).range.x = [log(MinContrast),log(100),21];      % Stimulus range in log Hz
+        psy.(condstring).range.mu = [log(MinContrast),log(50),31];     % Psychometric function mean in log Hz
+        psy.(condstring).range.sigma = [0.1,4,19];                   % The range for sigma is automatically converted to log spacing
+        psy.(condstring).range.lambda = [0,0.5,21];
+        % psy.range.lambda = [0.05-eps,0.05+eps,2];  % This would fix the lapse rate to 0.05
+        
+        % Define priors over parameters
+        psy.(condstring).priors.mu = [log(MinContrast),4];   % mean and std of (truncated) Gaussian prior over MU
+        psy.(condstring).priors.logsigma = [0,1];        % mean and std of (truncated) Gaussian prior over log SIGMA (Inf std means flat prior)
+        psy.(condstring).priors.lambda = [1.3 4];         % alpha and beta parameters of beta pdf over LAMBDA
+        
+        % Units -- used just for plotting in axis labels and titles
+        psy.(condstring).units.x = 'log';
+        psy.(condstring).units.mu = 'log';
+        psy.(condstring).units.sigma = 'log';
+        psy.(condstring).units.lambda = [];
+        psy.(condstring).units.psychofun = {'Gumbel','Normal','Logistic'};
+        
+        % Refractory time before presenting same stimulus again
+        psy.(condstring).reftime = 2;        % Expected number of trials (geometric distribution)
+        psy.(condstring).refradius = 0;      % Refractory radius around stimulus (in x units)
+        
+        
+        % initialize random contrast for first trial
+        [x, psy.(condstring)] = psybayes(psy.(condstring), method, vars, [], []);
+        designMat(trials.(condstring)(1),2) = x;
+        trials.(condstring)(1) = [];
+    end
     
-    % Refractory time before presenting same stimulus again
-    psy.(condstring).reftime = 2;        % Expected number of trials (geometric distribution)
-    psy.(condstring).refradius = 0;      % Refractory radius around stimulus (in x units)
+    % ========================================================
+    %    DO EXPERIMENT!!
+    % ========================================================
     
-    
-    % initialize random contrast for first trial
-    [x, psy.(condstring)] = psybayes(psy.(condstring), method, vars, [], []);
-    designMat(trials.(condstring)(1),2) = x;
-    trials.(condstring)(1) = [];
+    % initial stimulus orientations
+    names.stimuliMat = {'orientation1','orientation2','orientation3','orientation4','pos1_x','pos2_x','pos3_x','pos4_x','pos1_y','pos2_y','pos3_y','pos4_y'};
+    setsize = length(names.stimuliMat)/3;
+    stimuliMat = nan(nTrials,setsize*3);
+    stimuliMat(:,1:setsize) = round(rand(nTrials,setsize).*180);
+    stimuliMat(stimuliMat == 0,1:setsize) = 180;
 end
-
-% ========================================================
-%    DO EXPERIMENT!!
-% ========================================================
-
-% initial stimulus orientations
-names.stimuliMat = {'orientation1','orientation2','orientation3','orientation4','pos1_x','pos2_x','pos3_x','pos4_x','pos1_y','pos2_y','pos3_y','pos4_y'};
-setsize = length(names.stimuliMat)/3;
-stimuliMat = nan(nTrials,setsize*3);
-stimuliMat(:,1:setsize) = round(rand(nTrials,setsize).*180);
-stimuliMat(stimuliMat == 0,1:setsize) = 180;
 
 % response buttons
 keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('esc')];
@@ -91,22 +135,18 @@ length_int1 = 0.1;
 length_ISI = 1;
 length_int2 = Inf;  % on until response
 length_ITI = 0.5;
+feedbacktrial = 30;
 
 % display settings
-screenHeight    = 30.5;               % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
-screenDistance  = 40;
+screenHeight    = 29;               % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
+screenDistance  = 43;
 bgColor         = 128;              % background color
 stimColor       = 200;              % stimulus color
-fixLength       = 0.2;                % fixation cross length (DVA)
+fixLength       = 0.15;                % fixation cross length (DVA)
 fixColor        = 0;                % fixation cross color
 jitter          = 0.5;                % amount of x/y-jitter (dva)
 stimecc         = 5;                % stimulus eccentricity (dva)
 stimArea        = 2.25; %(1.5^2)    % stimulus area (deg).
-
-% file saving stuff
-if nargin < 1; subjid = input('enter subject ID: ', 's'); end
-subjid = upper(subjid);
-fidmat = fullfile('output_mat',['Training_ChangeLocalization_' subjid '.mat']);
 
 % screen info (visual)
 screenNumber =  max(Screen('Screens'));       % use external screen if exists
@@ -124,7 +164,7 @@ fixLength = round(fixLength*screen_ppd);
 % if isempty(sessionnum)
 %     windowPtr = Screen('OpenWindow',screenNumber,prefs.grey,[],32,2);
 % else
-    windowPtr = 10;
+windowPtr = 10;
 % end
 Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 HideCursor;
@@ -148,7 +188,7 @@ pause
 % waitForKey;
 
 
-for itrial = 1:nTrials
+for itrial = starttrial:nTrials
     
     orientationchange = designMat(itrial,1);
     condstring = changeVecNames{changeVec == abs(orientationchange)}; % current condition
@@ -251,7 +291,7 @@ for itrial = 1:nTrials
     end
     
     r = keysNum(pressedKey) == keysNum(designMat(itrial,4));
-    designMat(itrial,7) = r; 
+    designMat(itrial,7) = r;
     
     % ------------------ ITI ----------------------
     Screen('fillRect',windowPtr,bgColor);
@@ -265,14 +305,31 @@ for itrial = 1:nTrials
     % ------------------------------------------------------
     % get next contrast for this condition
     [x, psy.(condstring)] = psybayes(psy.(condstring), method, vars, x, r);
-    designMat(trials.(condstring)(1),2) = x;
-    try trials.(condstring)(1) = []; end
+    try
+        designMat(trials.(condstring)(1),2) = x;
+        trials.(condstring)(1) = [];
+    end
     
     % save current stuff
     save(fidmat,'designMat','stimuliMat','psy');
+    
+    % ------------ check if break --------------------
+    if ~mod(itrial,feedbacktrial) % every FEEDBACKTRIALth trial
+        
+        
+        Screen('DrawText',windowPtr,['You have finished ' num2str(itrial/feedbacktrial) '/20th of the trials'],screenCenter(1)-100,screenCenter(2)-80,[255 255 255]);
+        Screen('DrawText',windowPtr,['Press any key to continue'],screenCenter(1)-100,screenCenter(2)-40,[255 255 255]);
+        Screen('Flip', windowPtr);
+        pause;
+        
+    end
 end
+Screen('Flip', windowPtr);
+save(fidmat,'designMat','stimuliMat','psy','names');
 
 end
+
+
 
 function [pressedKey, RT] = waitForKeys(keys, tstart)
 
