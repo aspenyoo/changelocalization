@@ -1,18 +1,18 @@
-function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, nSessions, ispractice)
+function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, nSessions, isnewsession, ispractice)
 % runs 2AFC experiment: orientation change detection task.
 %
 % STRUCT EXPLANATIONS
 % prefs: experimental preferences
 % D: related to data (things you may analyze about the experiment in the
 % future)
-
 % ========================================================================
 % SETTING THINGS UP (changing this section is usually unnecessary)
 % ========================================================================
 if nargin < 3; sessionnum = []; end
 if nargin < 4; nTrialsPerCond = []; end
 if nargin < 5; nSessions = 6; end
-if nargin < 6; ispractice = 0; end
+if nargin < 6; isnewsession = 1; end % only relevant for first session errors
+if nargin < 7; ispractice = 0; end
 
 commandwindow;
 
@@ -84,7 +84,9 @@ setsize = max(prefs.pres1stimNum);
 % -------------------------------------------------------------------------
 
 % great designMat for all sessions
-if (sessionnum == 1)
+try
+    load(prefs.fidmat,'designMat','stimuliMat','names','prefs','fbtrial','progPC','nPC'); % load previous session
+catch
     
     % DESIGN MAT: conditions and responses of experiment
     designMat = [];
@@ -130,10 +132,10 @@ if (sessionnum == 1)
     end
     
     % calculating where breaks will occur
-    if prefs.blocknum >1;
+    if prefs.blocknum > 1;
         prefs.breakpoints = round((1:(prefs.blocknum-1)).*(prefs.ncurrTrials/prefs.blocknum));
     else
-        prefs.breakpoints = prefs.ncurrTrials+1;
+        prefs.breakpoints = Inf;
     end
     
     % STIMULI MAT: screen positions, orientations, target locations
@@ -165,33 +167,33 @@ if (sessionnum == 1)
     
     % initial stimulus orientations
     stimuliMat(:,setsize+1:2*setsize) = round(180*rand(prefs.nTrials,setsize));
-    
-    % stimulus location
-    randloc = 0;
-    if (randloc)
-        %     for itrial = 1:prefs.nTrials
-        %         % Pick angle of first one rand and add the rest in counterclockwise
-        %         % fashion with angle spacing = 2pi/max(E.setSizeNum)
-        %         locAngles = rand*2*pi+(1:setSize)*(2*pi)/setSize;
-        %
-        %         [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
-        %         % positions with jitter
-        %         % ASPEN: OUTDATEDD
-        % %         stimuliMat(itrial,1:setSize) = X(1:setSize) + screenCenter(1)...
-        % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
-        % %         stimuliMat(itrial,setSize+1:setSize+setSize) = Y(1:setSize) + screenCenter(2)...
-        % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
-        %     end
-    else
-        locAngles = pi/4-(1:setsize)*(2*pi)/setsize;
-        [X_pos, Y_pos] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
-        X_pos = X_pos + screenCenter(1);
-        Y_pos = Y_pos + screenCenter(2);
-    end
-    trial = 1; % starting on the first trial
+     
+    fbtrial = 0; progPC = [];
+end
+% figure out what trial you are on
+trial = find(isnan(designMat(:,end)),1,'first');
+
+% stimulus location
+randloc = 0;
+if (randloc)
+    %     for itrial = 1:prefs.nTrials
+    %         % Pick angle of first one rand and add the rest in counterclockwise
+    %         % fashion with angle spacing = 2pi/max(E.setSizeNum)
+    %         locAngles = rand*2*pi+(1:setSize)*(2*pi)/setSize;
+    %
+    %         [X, Y] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
+    %         % positions with jitter
+    %         % ASPEN: OUTDATEDD
+    % %         stimuliMat(itrial,1:setSize) = X(1:setSize) + screenCenter(1)...
+    % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
+    % %         stimuliMat(itrial,setSize+1:setSize+setSize) = Y(1:setSize) + screenCenter(2)...
+    % %             + round((rand(1,setSize)-.5)*prefs.jitter*screen_ppd);
+    %     end
 else
-    load(prefs.fidmat); % load previous session
-    trial = find(isnan(designMat(:,end)),1,'first'); % figure out what trial you are on
+    locAngles = pi/4-(1:setsize)*(2*pi)/setsize;
+    [X_pos, Y_pos] = pol2cart(locAngles, screen_ppd * prefs.stimecc);
+    X_pos = X_pos + screenCenter(1);
+    Y_pos = Y_pos + screenCenter(2);
 end
 
 % matrix of all possible stimuli
@@ -268,7 +270,6 @@ end
 
 % run a trial
 % -------------------------------------------------------------------------
-fbtrial = 0; progPC = [];
 for itrial = trial:prefs.ncurrTrials*sessionnum;
     
     % setting values for current trial
@@ -597,7 +598,7 @@ save(prefs.fidmat)
         while (1)
             
             [keyIsDown, secs, keyCode] = KbCheck();
-            if  any(keyCode(keys))
+            if  any(keyCode(keys))%(sum(keyCode(keys))==1)
                 RT = GetSecs - tstart;
                 pressedKey = find(keyCode(keys));
                 break;

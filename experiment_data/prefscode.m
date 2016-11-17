@@ -142,10 +142,7 @@ if strcmp(exptype(1:5),'Pract'); % if this is practice
     
     % info for current experiment
     fileName = ['Pract' fileName(4:end)]; % changing the name to have "pract" instead of "exp"
-    
-    feedback = 1;               % feedback
-    pres1Dur = pres1Dur*2;      % twice as long ellipse presentation time
-    blocknum = 1;               % number of blocks ( 1 + number of breaks )
+    feedbacktrial = 1000;     % no feedback!
 end
 
 if sum(pres1stimNum == 1)==1;
