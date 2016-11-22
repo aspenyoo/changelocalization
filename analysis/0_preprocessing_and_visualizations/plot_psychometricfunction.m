@@ -1,4 +1,4 @@
-function plot_psychometricfunction(subjids,condVec)
+function plot_psychometricfunction(subjids,exptype,condVec)
 % plot psychometric function for single or multiple subjects
 
 % subjids = {'AHY'};
@@ -16,7 +16,7 @@ for isubj = 1:nSubj;
     
     % load file
     subjid = subjids{isubj};
-    load(sprintf('luigidata_ChangeLocalization_subj%s.mat',subjid));
+    load(sprintf('processeddata_ChangeLocalization_%s_subj%s.mat',exptype,subjid));
     
     for icond = 1:nCond;
         
