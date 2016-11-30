@@ -1,9 +1,10 @@
-function table = fit_maximum_likelihood(nid,model,runlist,runmax,nSamples)
+function table = fit_maximum_likelihood(subjid,exptype,model,runlist,runmax,nSamples)
 
-if nargin < 4 || isempty(runmax); runmax = 50; end
-if nargin < 5 || isempty(nSamples); nSamples = 1e4; end
+if nargin < 5 || isempty(runmax); runmax = 50; end
+if nargin < 6 || isempty(nSamples); nSamples = 1e4; end
 
-dataname = 'ChangeLocalization_grant_data.mat';
+subjid = upper(subjid);
+dataname = sprintf('processeddata_ChangeLocalization_%s_subj%s',exptype,subjid);
 
 % # samples for high-precision estimate
 if numel(nSamples) > 1
@@ -13,8 +14,7 @@ else
 end
 
 % Load dataset
-temp = load(dataname);
-data = temp.data_all{nid};
+load(dataname);
 
 % Set parameter bounds
 jbar_bounds = [0.0067,35];  % Hard bounds for JBAR1 and JBAR2
@@ -33,13 +33,11 @@ options.UncertaintyHandling = 'on';
 % Generate set of starting point with a Latin hypercube design
 rng(0); % Same set for all
 nvars = numel(PLB);
-x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
+% x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
+x0_list = bsxfun(@plus,bsxfun(@times,rand(runmax,nvars),PUB-PUB),PLB);
 
-maxsubjs = 2;
-maxmodels = 2;
-
-table.xbest = NaN(maxsubjs,maxmodels,runmax,3);
-table.LLbest = NaN(maxsubjs,maxmodels,runmax);
+table.xbest = NaN(runmax,3);
+table.LLbest = NaN(runmax);
 
 for iter = 1:numel(runlist)
     runlist(iter)
@@ -56,8 +54,8 @@ for iter = 1:numel(runlist)
     LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal);
     
     % Store results in table
-    table.xbest(nid,model,runlist(iter),:) = xbest;
-    table.LLbest(nid,model,runlist(iter)) = LLbest;
+    table.xbest(runlist(iter),:) = xbest;
+    table.LLbest(runlist(iter)) = LLbest;
     
 end
 

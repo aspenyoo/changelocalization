@@ -41,12 +41,6 @@ for isubj = 1:nSubj;
     end
 end
 
-if nSubj > 1; 
-    pc_std = squeeze(std(pc,[],1))./sqrt(nSubj);
-    pic_std = squeeze(std(pic,[],1))./sqrt(nSubj);
-    pii_std = squeeze(std(pii,[],1))./sqrt(nSubj);
-end
-
 combinebins = 2;
 nBins_new = length(delta)/combinebins;
 pc_new = nan(nSubj,nCond,nBins_new);
@@ -69,6 +63,10 @@ if nSubj == 1;
     pc_std = sqrt(squeeze(pc(isubj,:,:).*(1-pc(isubj,:,:))./(36.*(pc(isubj,:,:)))));
     pic_std = sqrt(squeeze(pic(isubj,:,:).*(1-pic(isubj,:,:))./(36.*(pc(isubj,:,:)))));
     pii_std= sqrt(squeeze(pii(isubj,:,:).*(1-pii(isubj,:,:))./(36.*(pc(isubj,:,:)))));
+else
+    pc_std = squeeze(std(pc,[],1))./sqrt(nSubj);
+    pic_std = squeeze(std(pic,[],1))./sqrt(nSubj);
+    pii_std = squeeze(std(pii,[],1))./sqrt(nSubj);
 end
 
 % if I don't want errorbars plotted
@@ -81,8 +79,8 @@ end
 colors = aspencolors(4,'pastel');%['b'; 'y'; 'g'; 'r'];
 % figure; hold on;
 hold on;
-for icond = 1:length(condVec);
-errorbar(delta,squeeze(mean(pc(:,condVec(icond),:),1)),pc_std(condVec(icond),:),'Color',colors(condVec(icond),:));
+for icond = 1:length(condVec)
+    errorbar(delta,squeeze(mean(pc(:,condVec(icond),:),1)),pc_std(condVec(icond),:),'Color',colors(condVec(icond),:));
 end
 % errorbar(delta,squeeze(mean(pc(:,4,:),1)),pc_std(4,:),'Color',0.7*ones(1,3),'LineStyle','-');
 % legend(sprintf('condition %d/%d',data{condVec(icond)}.Nset1,data{condVec(icond)}.Nset1),'1st interval')

@@ -40,13 +40,13 @@ nCond = length(nLowRelVec);        % number of conditions
 
 % for each condition, make the whatever
 data = cell(1,nCond);
-for icond = 1:nCond;
+for icond = 1:nCond
     nLowRel = nLowRelVec(icond);
     targetCond = targetCondVec(icond);
    
     data{icond}.Nset1 = nLowRel;             % set size for low reliability condition
     data{icond}.Nset2 = setsize - nLowRel;   % set size for high reliability condition
-    data{icond}.Cset = targetCond;               % which display change target was presented
+    data{icond}.Cset = find(contrastVec == targetCond);               % which display change target was presented
     
     % finding indices of trials in the correct condition (reliability and target location)
     switch exptype
@@ -60,7 +60,7 @@ for icond = 1:nCond;
     
     Rmat = nan(length(deltaVec),3);
     % for each change value, delta...
-    for idelta = 1:length(deltaVec); 
+    for idelta = 1:length(deltaVec)
         delta = deltaVec(idelta); % current delta value
         
         idxx = idx & (abs(designMat(:,deltaidx)) == delta); % how many of that delta

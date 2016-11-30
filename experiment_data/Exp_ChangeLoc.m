@@ -460,7 +460,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         % leave pres2 stimuli on screen until response
     else % if response is not during 2nd presentation
         % leave pres2 stimuli on screen for fixed duration
-        while (GetSecs()-t0)<prefs.pres2Dur;
+        while (GetSecs()-t0)<prefs.pres2Dur
             % do nothing
         end
         % blank screen (waiting for response)
