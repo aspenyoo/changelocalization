@@ -1,12 +1,9 @@
-%% simulate data
+%% % % % % % % % % % % % % % % % % % % % % % % % % 
+%    BETA DISTRIBUTION
+% % % % % % % % % % % % % % % % % % % % % % % % % 
+xx = linspace(0,1,100);
+plot(xx,betapdf(xx,1.3,4))
 
-model = 1; % 1: optimal. 2: fixed
-X = []; % data in luigiform
-Nsamples = []; % default if empty
-
-theta = [3 10 1 0.01]; % [jbar1 jbar2 tau lapse]
-
-[~,prmat,X] = AhyBCL_datalikeall(theta,X,model,Nsamples);
 
 %% logistic regression: pc ~ condition + delta
 clear all
@@ -49,34 +46,34 @@ X(X(:,1) == 0,2) = 1; % delay for 0 condition is 1
 X(X(:,2) == 4,2) = 3; % delay for 4 condition is 3
 
 % linear regression
-% X = [ones(size(designMat,1),1) X];
-% [b,bint,~,~,stats] = regress(y,X) % stats: R^2, F, p, and estimate of error variance
+X = [ones(size(designMat,1),1) X];
+[b,bint,~,~,stats] = regress(y,X) % stats: R^2, F, p, and estimate of error variance
 
-% ordinal multinomial regression
-[B,dev,stats] = mnrfit(X,y,'model','ordinal')
-LL = stats.beta - 1.96*stats.se
-UL = stats.beta + 1.96*stats.se
-
-% plot regression fits
-xx = linspace(5,85,50);
-XX = [ones(50,1) 3*ones(50,1) xx'];
-BMat = [B(1:3)'; repmat(B(4:end),1,3)];
-logoddsMat = XX*BMat; % log odds for each of the 3 equations
-logoddssign = sign(logoddsMat);
-difflogoddssign = diff(logoddssign,1,2); % difference between the signs of log odds
-[row,col] = find(difflogoddssign == 2);
-predictedConf = nan(50,1);
-predictedConf(row) = col+1;
-predictedConf(logoddssign(:,1) == 1 ) = 1;
-predictedConf(logoddssign(:,3) == -1) = 4;
-hold on; plot(xx,predictedConf);
+% % ordinal multinomial regression
+% [B,dev,stats] = mnrfit(X,y,'model','ordinal')
+% LL = stats.beta - 1.96*stats.se
+% UL = stats.beta + 1.96*stats.se
+%
+% % plot regression fits
+% xx = linspace(5,85,50);
+% XX = [ones(50,1) 3*ones(50,1) xx'];
+% BMat = [B(1:3)'; repmat(B(4:end),1,3)];
+% logoddsMat = XX*BMat; % log odds for each of the 3 equations
+% logoddssign = sign(logoddsMat);
+% difflogoddssign = diff(logoddssign,1,2); % difference between the signs of log odds
+% [row,col] = find(difflogoddssign == 2);
+% predictedConf = nan(50,1);
+% predictedConf(row) = col+1;
+% predictedConf(logoddssign(:,1) == 1 ) = 1;
+% predictedConf(logoddssign(:,3) == -1) = 4;
+% hold on; plot(xx,predictedConf);
 
 
 %% create model fit datat psychometric fn
 clear all
 
 load('modelfits.mat')
-model = 1;
+model = 2;
 subjids = {'AHY','LA'};
 nSubj = length(subjids);
 deltaVec = 2.5:5:87.5;
@@ -118,4 +115,94 @@ for isubj = 1:nSubj;
     
 end
 
+%% LOOK AT SOME STIMULI ON PSYCHTOOLBOX
 
+% line stimuli
+numDegrees = 180;
+% prefs.lineArea = prefs.stimArea; % so line is same area as ellipse
+lineWidth = 3; % pixels
+lineLength = 100;
+lineCoordinates = nan(2,numDegrees);
+for j = 1:numDegrees;
+    [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(lineLength,j);
+end
+
+% psychtoolbox
+screenNumber = max(Screen('Screens'));       % use external screen if exists
+[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
+screenCenter = [w h]/2;
+windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
+Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+% make gabor patch with full contrast
+stimLength = 100;
+StimSizes = [stimLength stimLength];
+reliability = 1; % contrast of 1
+im = makeGabor(stimLength, reliability);
+StimPatch= Screen('MakeTexture',windowPtr,im);
+
+
+pos = screenCenter + [100 100];
+lineVec = [0 30];
+nLines = length(lineVec);
+for iline = 1:nLines;
+    deg = mod(90-lineVec(iline),180);
+    if deg == 0; deg = 180; end
+    
+    % gabor
+    srcrect = [0 0 StimSizes];
+    destrect = CenterRectOnPoint(srcrect,pos(1),pos(2));
+    Screen('DrawTexture', windowPtr, StimPatch, srcrect,destrect, 180-90+deg);
+    
+    % line
+    lineStim = lineCoordinates(:,deg);
+    xy = [-lineStim lineStim];
+    Screen('DrawLines',windowPtr, xy, lineWidth,256,pos,1);
+    
+    Screen('flip',windowPtr); % tic;
+    pause;
+end
+
+sca;
+ShowCursor;
+
+
+%% FIT MOC psychometric function
+% 08.16.2016
+
+clear all
+
+mixedcontrast = 1; 
+subjid = 'AMM';
+psychofun = @(x) lambda/2 + (1-lambda).*0.5*(1+erf((x-mu)./(sqrt(2)*sigma)));
+
+if (mixedcontrast)
+    concatvars = concatcode('experiment_data/output_mat/',['ContrastFn_MOC_' subjid '_'],{'designMat','stimuliMat'});
+    v2struct(concatvars);
+%     load('ContrastFn_MOC_MIX_20160804T220952.mat')
+    designMat = designMat(stimuliMat(:,5) >= 3,:);
+    titlee = 'mixed contrast';
+else
+    concatvars = concatcode('experiment_data/output_mat/',['ContrastFn_MOC_' subjid '_'],{'designMat','stimuliMat'});
+    v2struct(concatvars);
+%     load('ContrastFn_MOC_AHY_20160804T215847.mat')
+titlee = 'same contrast';
+end
+
+contrastVec = unique(designMat(:,1));
+nContrasts = length(contrastVec);
+
+PC = nan(1,nContrasts);
+for icontrast = 1:nContrasts;
+    contrast = contrastVec(icontrast);
+    
+    PC(icontrast) = nanmean(designMat(designMat(:,1) == contrast,3));
+end
+
+figure
+plot((contrastVec),PC,'k*')
+defaultplot
+ylabel('percent correct')
+xlabel('contrast')
+ylim([0.5 1])
+title(titlee)

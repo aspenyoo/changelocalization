@@ -5,18 +5,18 @@ function fit_grant_jun2016(procid,runmax,nSamples)
 if nargin < 2 || isempty(runmax); runmax = 50; end
 if nargin < 3; nSamples = []; end   % Use default
 
-runlist =  mod(procid-1,runmax) + 1;  
-modsubjid = floor((procid-1)/runmax) + 1;
+subjids = {'ALM','DR','EN','MR'};
+nModels = 2;                % number of models
 
-switch modsubjid
-    case 1; nid = 1; model = 1;
-    case 2; nid = 2; model = 1;
-    case 3; nid = 1; model = 2;
-    case 4; nid = 2; model = 2;
-end
+runlist = mod(procid-1,runmax)+1; % which of 50 starting values to use
 
-table = fit_maximum_likelihood(nid,model,runlist,runmax,nSamples);
+modsubjid = floor((procid-1)/runmax) + 1; % subject and model id
 
-save(['changelocalization-fit-jun2016-' num2str(procid) '.mat']);
+subjnum = ceil(modsubjid/nModels);
+subjid = subjids{subjnum};
+model = mod(modsubjid-1,nModels) + 1;
+
+fit_maximum_likelihood(subjid,model,'Contrast',runlist,runmax,nSamples);
+fit_maximum_likelihood(subjid,model,'Delay',runlist,runmax,nSamples);
 
 end
