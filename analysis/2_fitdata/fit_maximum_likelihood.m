@@ -1,9 +1,7 @@
-function table = fit_maximum_likelihood(nid,model,runlist,runmax,nSamples)
+function fit_maximum_likelihood(subjid,model,exptype,runlist,runmax,nSamples)
 
-if nargin < 4 || isempty(runmax); runmax = 50; end
-if nargin < 5 || isempty(nSamples); nSamples = 1e4; end
-
-dataname = 'ChangeLocalization_grant_data.mat';
+if nargin < 5 || isempty(runmax); runmax = 50; end
+if nargin < 6 || isempty(nSamples); nSamples = 1e4; end
 
 % # samples for high-precision estimate
 if numel(nSamples) > 1
@@ -12,9 +10,15 @@ else
     nSamplesFinal = 4e5;
 end
 
+% commented out bc not good for cluster
+% try
+%     load('ChangeLocalization_fits_Dec2016.mat')
+% end
+% 
+% modstr = sprintf('model%d',model); % string used for saving
+
 % Load dataset
-temp = load(dataname);
-data = temp.data_all{nid};
+load(sprintf('processeddata_ChangeLocalization_%s_subj%s.mat',exptype,subjid));
 
 % Set parameter bounds
 jbar_bounds = [0.0067,35];  % Hard bounds for JBAR1 and JBAR2
@@ -35,11 +39,11 @@ rng(0); % Same set for all
 nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
-maxsubjs = 2;
-maxmodels = 2;
-
-table.xbest = NaN(maxsubjs,maxmodels,runmax,3);
-table.LLbest = NaN(maxsubjs,maxmodels,runmax);
+% stuff for file saving
+filename = sprintf('ChangeLocalization_%s_model%d_subj%s.txt',exptype,model,subjid);
+permission = 'a+';
+formatSpec = repmat('%4.4f \t ',1,nvars+2);
+formatSpec = [formatSpec(1:end-3) '\r\n'];
 
 for iter = 1:numel(runlist)
     runlist(iter)
@@ -55,10 +59,17 @@ for iter = 1:numel(runlist)
     % Evaluate function with high precision
     LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal);
     
-    % Store results in table
-    table.xbest(nid,model,runlist(iter),:) = xbest;
-    table.LLbest(nid,model,runlist(iter)) = LLbest;
+    % save file
+    fileID = fopen(filename,permission);
+    A1 = [xbest LLbest runlist(iter)];
+    fprintf(fileID, formatSpec, A1);
+    fclose(fileID);
     
+%     % commented out bc not good for cluster
+%     fits.(modstr).(exptype).(subjid).xbest(runlist(iter),:) = xbest;
+%     fits.(modstr).(exptype).(subjid).LLbest(runlist(iter)) = LLbest;
+%     
+%     save('ChangeLocalization_fits_Dec2016.mat','fits')
 end
 
 
