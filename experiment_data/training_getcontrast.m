@@ -325,6 +325,8 @@ for itrial = starttrial:nTrials
     end
 end
 Screen('Flip', windowPtr);
+
+[~,psy] = psybayes(psy);
 save(fidmat,'designMat','stimuliMat','psy','names');
 
 end
