@@ -45,7 +45,7 @@ for iter = 1:numel(runlist)
     runlist(iter)
     
     % Fix random seed based on iteration (for reproducibility)
-    rng(iter);
+    rng(runlist(iter));
     
     x0 = x0_list(runlist(iter),:);
     [xbest,fval,exitflag,output] = ...

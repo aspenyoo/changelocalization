@@ -7,7 +7,7 @@ function [loglike,prmat] = AhyBCL_datalike1(theta,Nset1,Nset2,Cset,Rmat,model,Ns
 %   NSET2 the set size of the 2nd interval; CSET the interval that contains
 %   change (either 1 or 2). RMAT is a matrix with one row per stimulus type,
 %   corresponding to the amount of change (the default experiment has 18 
-%   stimuli types, with changes of 5:5:90 deg, due to assumed symmetry). 
+%   stimuli types, with changes of 2.5:5:87.5 deg, due to assumed symmetry). 
 %   Each column of RMAT contains the number of trials in which the observer 
 %   responded: (1st) correctly; (2nd) incorrectly, but a stimulus within the 
 %   same interval as where the change occurred; (3rd) incorrectly, and a
