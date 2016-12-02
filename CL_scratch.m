@@ -206,3 +206,46 @@ ylabel('percent correct')
 xlabel('contrast')
 ylim([0.5 1])
 title(titlee)
+
+
+%% COMPILE MODEL FITS FOR ALL SUBJECTS
+
+modelVec = [1 2];
+subjids = {'ALM','DR','EN','MR'};
+exptypeVec = {'Contrast','Delay'};
+
+nSubjs = length(subjids);
+nModels = length(modelVec);
+nExptype = length(exptypeVec);
+nParams = 3;
+
+
+for imodel = 1:nModels
+    model = modelVec(imodel);
+    modelstr = ['model' num2str(model)];
+    
+    for iexptype = 1:nExptype
+        exptype = exptypeVec{iexptype};
+        
+        
+        for isubj = 1:nSubjs
+            subjid = subjids{isubj};
+            filename = sprintf('ChangeLocalization_%s_model%d_subj%s.txt',exptype,model,subjid);
+            alldata = dlmread(filename);
+            
+            datasorted = sortrows(alldata,nParams+1);
+            fits.(modelstr).(exptype).bfpMat(isubj,:)= datasorted(1,1:nParams);
+            fits.(modelstr).(exptype).LLVec(isubj)= datasorted(1,nParams+1);
+        end
+    end
+    
+end
+
+
+%% MODEL COMPARISON
+
+modcomp = [fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec];
+modcomp = modcomp + [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]
+
+% positive number means 
+bsxfun(@minus,modcomp(1,:),modcomp)
