@@ -244,8 +244,21 @@ end
 
 %% MODEL COMPARISON
 
-modcomp = [fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec];
-modcomp = modcomp + [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]
+Contrast_LLMat = [fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec];
+Delay_LLMat = [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec];
+modcomp = Contrast_LLMat + Delay_LLMat;
+
+comparetype = 2;
+switch comparetype
+    case 1 % just contrast
+        comparevalue = Contrast_LLMat;
+    case 2 % just delay
+        comparevalue = Delay_LLMat;
+    case 3 % both
+        comparevalue = modcomp;
+end
 
 % positive number means 
-bsxfun(@minus,modcomp(1,:),modcomp)
+moddiff = bsxfun(@minus,comparevalue(1,:),comparevalue)
+mean_moddiff = mean(moddiff,2)
+sem_moddiff = std(moddiff,[],2)./sqrt(4)
