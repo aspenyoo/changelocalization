@@ -207,17 +207,21 @@ xlabel('contrast')
 ylim([0.5 1])
 title(titlee)
 
+% ============================================
+%       LOOKING AT PARAMETER FITS
+% ============================================
 
 %% COMPILE MODEL FITS FOR ALL SUBJECTS
 
 modelVec = [1 2];
 subjids = {'ALM','DR','EN','MR'};
 exptypeVec = {'Contrast','Delay'};
+filelocation = 'results/vss-dec2016/txt-lapse/';
 
 nSubjs = length(subjids);
 nModels = length(modelVec);
 nExptype = length(exptypeVec);
-nParams = 3;
+nParams = 4;
 
 
 for imodel = 1:nModels
@@ -230,7 +234,7 @@ for imodel = 1:nModels
         
         for isubj = 1:nSubjs
             subjid = subjids{isubj};
-            filename = sprintf('ChangeLocalization_%s_model%d_subj%s.txt',exptype,model,subjid);
+            filename = sprintf('%sChangeLocalization_%s_model%d_subj%s.txt',filelocation,exptype,model,subjid);
             alldata = dlmread(filename);
             
             datasorted = sortrows(alldata,nParams+1);
@@ -241,6 +245,7 @@ for imodel = 1:nModels
     
 end
 
+save('',fits)
 
 %% MODEL COMPARISON
 
