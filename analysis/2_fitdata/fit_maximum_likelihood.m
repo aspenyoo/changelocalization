@@ -25,13 +25,13 @@ jbar_bounds = [0.0067,35];  % Hard bounds for JBAR1 and JBAR2
 jbar_pbounds = [0.0067,1];  % Plausible bounds for JBAR1 and JBAR2
 tau_bounds = [0.5,3e3];     % Hard bounds for TAU
 tau_pbounds = [35,3e3];     % Plausible bounds for TAU
-lapse_bounds = exp([0 1]);
-lapse_pbounds = exp([0 0.2]);
+lapse_bounds = [1e-5 1];
+lapse_pbounds = [1e-5 0.2];
 
-LB = log([jbar_bounds(1),jbar_bounds(1),tau_bounds(1) lapse_bounds(1)]);
-UB = log([jbar_bounds(2),jbar_bounds(2),tau_bounds(2) lapse_bounds(2)]);
-PLB = log([jbar_pbounds(1),jbar_pbounds(1),tau_pbounds(1) lapse_pbounds(1)]);
-PUB = log([jbar_pbounds(2),jbar_pbounds(2),tau_pbounds(2) lapse_pbounds(2)]);
+LB = [log([jbar_bounds(1),jbar_bounds(1),tau_bounds(1)]) lapse_bounds(1)];
+UB = [log([jbar_bounds(2),jbar_bounds(2),tau_bounds(2)]) lapse_bounds(2)];
+PLB = [log([jbar_pbounds(1),jbar_pbounds(1),tau_pbounds(1)]) lapse_pbounds(1)];
+PUB = [log([jbar_pbounds(2),jbar_pbounds(2),tau_pbounds(2)])  lapse_pbounds(2)];
 
 % BPS options
 options.UncertaintyHandling = 'on';
@@ -55,8 +55,8 @@ for iter = 1:numel(runlist)
     
     x0 = x0_list(runlist(iter),:);
     [xbest,fval,exitflag,output] = ...
-        bps(@(x) -AhyBCL_datalikeall(exp(x),data,model,nSamples(1)),x0,LB,UB,PLB,PUB,options);    
-    xbest = exp(xbest);
+        bps(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1)),x0,LB,UB,PLB,PUB,options);    
+    xbest = [exp(xbest(1:3)) xbest(4)];
         
     % Evaluate function with high precision
     LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal);
