@@ -4,6 +4,15 @@
 xx = linspace(0,1,100);
 plot(xx,betapdf(xx,1.3,4))
 
+%% gamma distribution
+
+Jbar = 35;
+tau = 95;
+samples = gamrnd(Jbar/tau,tau,[1,1e6]);
+% figure
+subplot(1,2,2)
+hist(samples,100)
+axis([0 200, 0 1e5]);
 
 %% logistic regression: pc ~ condition + delta
 clear all
@@ -216,12 +225,12 @@ title(titlee)
 modelVec = [1 2];
 subjids = {'ALM','DR','EN','MR'};
 exptypeVec = {'Contrast','Delay'};
-filelocation = 'results/vss-dec2016/txt-lapse/';
+filelocation = 'results/vss-dec2016/txt/';
 
 nSubjs = length(subjids);
 nModels = length(modelVec);
 nExptype = length(exptypeVec);
-nParams = 4;
+nParams = 3;
 
 
 for imodel = 1:nModels
@@ -238,32 +247,138 @@ for imodel = 1:nModels
             alldata = dlmread(filename);
             
             datasorted = sortrows(alldata,nParams+1);
-            fits.(modelstr).(exptype).bfpMat(isubj,:)= datasorted(1,1:nParams);
-            fits.(modelstr).(exptype).LLVec(isubj)= datasorted(1,nParams+1);
+            fits.(modelstr).(exptype).bfpMat(isubj,:)= datasorted(end,1:nParams);
+            fits.(modelstr).(exptype).LLVec(isubj)= datasorted(end,nParams+1);
         end
     end
     
 end
 
-save('',fits)
+save('modelfits.mat','fits')
 
 %% MODEL COMPARISON
 
-Contrast_LLMat = [fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec];
-Delay_LLMat = [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec];
-modcomp = Contrast_LLMat + Delay_LLMat;
+Contrast_AICMat = -2.*[fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec]+6;
+Delay_AICMat = -2.* [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]+6;
+modcomp = Contrast_AICMat + Delay_AICMat;
 
 comparetype = 2;
 switch comparetype
     case 1 % just contrast
-        comparevalue = Contrast_LLMat;
+        comparevalue = Contrast_AICMat;
     case 2 % just delay
-        comparevalue = Delay_LLMat;
+        comparevalue = Delay_AICMat;
     case 3 % both
         comparevalue = modcomp;
 end
 
 % positive number means 
-moddiff = bsxfun(@minus,comparevalue(1,:),comparevalue)
+moddiff = bsxfun(@minus,comparevalue,comparevalue(1,:))
 mean_moddiff = mean(moddiff,2)
 sem_moddiff = std(moddiff,[],2)./sqrt(4)
+
+%% =======================
+%  PLOTS
+% ===================
+
+clear all
+
+filelocation = 'results/vss-dec2016/txt-lapse/';
+load([filelocation 'modelfits.mat'])
+subjids = {'ALM','DR','EN','MR'};
+exptype = 'Delay';
+model = 2;
+modelstr = sprintf('model%d',model);
+
+nSubj = length(subjids);
+deltaVec = 2.5:5:87.5;
+
+for isubj = 1:nSubj
+subjid = subjids{isubj};
+bfp = fits.(modelstr).(exptype).bfpMat(isubj,:);
+try
+if bfp(4) == 0
+    bfp(4) = 1e-6;
+end
+end
+
+X = []; % data in luigiform
+Nsamples = 1000; % default if empty
+
+[~,prmat,X] = AhyBCL_datalikeall(bfp,X,model,Nsamples);
+
+% plot psychometric function
+figure;
+hold on;
+colors = aspencolors(4,'pastel');%['b'; 'y'; 'g'; 'r'];
+condlegendd = {'0/2', '2/1','2/2','4/1'};
+for icond = 1:4
+    subplot(2,2,icond)
+    plot_psychometricfunction({subjid},exptype,icond); % plot real data
+    pc = prmat{icond}(:,1)';
+    pc_std = pc.*(1-pc)./24;
+    plot_summaryfit(deltaVec,[],[],pc,pc_std,colors(icond,:),colors(icond,:));
+    title(condlegendd{icond})
+    axis([0 90 0 1])
+    ax = gca;
+    ax.XTick = [0 30 60 90];
+    ax.YTick = 0:.5:1;
+    %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+end
+end
+
+%% average plot
+
+clear all
+
+filelocation = 'results/vss-dec2016/txt/';
+load([filelocation 'modelfits.mat'])
+subjids = {'ALM','DR','EN','MR'};
+exptype = 'Delay';
+model = 2;
+
+modelstr = sprintf('model%d',model);
+nSubj = length(subjids);
+deltaVec = 2.5:5:87.5;
+
+PRMat = cell(1,4);
+for isubj = 1:nSubj
+    subjid = subjids{isubj};
+    bfp = fits.(modelstr).(exptype).bfpMat(isubj,:);
+    try
+    if bfp(4) == 0
+        bfp(4) = 1e-6;
+    end
+    end
+    
+    X = []; % data in luigiform
+    Nsamples = 1000; % default if empty
+    
+    [~,prmat,X] = AhyBCL_datalikeall(bfp,X,model,Nsamples);
+    
+    PRMat = cellfun(@(x,y) [x;y(:,1)'],PRMat,prmat,'UniformOutput',false);
+    
+end
+mean_mod = cellfun(@mean,PRMat,'UniformOutput',false);
+sem_mod = cellfun(@(x) std(x)/sqrt(size(x,1)),PRMat,'UniformOutput',false);
+mean_mod= reshape(cell2mat(mean_mod),[18 4])';
+sem_mod = reshape(cell2mat(sem_mod),[18 4])';
+
+% plot psychometric function
+figure;
+hold on;
+colors = aspencolors(4,'pastel');%['b'; 'y'; 'g'; 'r'];
+condlegendd = {'0/2', '2/1','2/2','4/1'};
+for icond = 1:4
+    
+    subplot(2,2,icond)
+    plot_psychometricfunction(subjids,exptype,icond); % plot real data
+    
+    plot_summaryfit(deltaVec,[],[],mean_mod(icond,:),sem_mod(icond,:),colors(icond,:),colors(icond,:));
+    title(condlegendd{icond})
+    axis([0 90 0 1])
+    ax = gca;
+    ax.XTick = [0 30 60 90];
+    ax.YTick = 0:.5:1;
+    %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+end
