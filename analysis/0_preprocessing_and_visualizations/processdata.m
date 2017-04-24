@@ -43,6 +43,7 @@ nCond = length(nLowRelVec);        % number of conditions
 % for each condition, make the matrix of responses
 data = cell(1,nCond);
 for icond = 1:nCond
+    icond
     nLowRel = nLowRelVec(icond);
     targetCond = targetCondVec(icond);
    
@@ -65,6 +66,7 @@ for icond = 1:nCond
     Rmat = nan(length(deltaVec),3);
     % for each change value, delta...
     for idelta = 1:length(deltaVec)
+        idelta
         delta = deltaVec(idelta); % current delta value
         
         idxx = idx & (abs(designMat(:,deltaidx)) == delta); % how many of that delta

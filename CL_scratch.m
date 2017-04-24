@@ -1,8 +1,25 @@
-%% % % % % % % % % % % % % % % % % % % % % % % % % 
-%    BETA DISTRIBUTION
-% % % % % % % % % % % % % % % % % % % % % % % % % 
+%% BETA DISTRIBUTION
+
 xx = linspace(0,1,100);
 plot(xx,betapdf(xx,1.3,4))
+
+
+%% check percent correct as a function of session
+subjid = 'DC';
+exptype = 'Delay';
+
+filepath = 'experiment_data/output_mat/round4/';
+filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
+
+load([filepath filename],'progPC')
+plot(progPC,'ko'); hold on
+plot([0 60],[25 25],'Color',0.7*ones(1,3)); % chance
+plot([10 10;20 20;30 30;40 40;50 50],[0 100],'Color',0.7*ones(1,3))
+ylim([0 100])
+defaultplot;
+hold off
+xlabel('block number')
+ylabel('PC')
 
 
 %% logistic regression: pc ~ condition + delta
