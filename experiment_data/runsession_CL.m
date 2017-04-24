@@ -1,14 +1,21 @@
-function runsession_CL(subjid,sessionnum,redo)
+function runsession_CL(subjid,sessionnum,delayfirst,redo)
 % run a session of the second change detection task (CD2)
 % redo: if someone made an error and you want to pick up where you left
 % off. best for first session (other ones you don't need to redo to pick up
 % where you left off)
+% 
+% ============== INPUT ================
+% SUBJID: 
+% SESSIONNUM: 1-7
+% DELAYFIRST: 1 if delay first, 0 if contrast first (for second session)
+% REDO: redo the session (don't pick up from last left off?)
 
 clc;
 
 if nargin < 1; subjid = input('enter subject ID: ', 's'); end
 if nargin < 2; sessionnum = input('enter session number: '); end
-if nargin < 3; redo = 0; end
+if nargin < 3; delayfirst = 0; end
+if nargin < 4; redo = 0; end
 
 screenNumber = max(Screen('Screens'));       % use external screen if exists
 [w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
@@ -19,7 +26,7 @@ Screen('TextFont',windowPtr,'Helvetica');
 HideCursor;
 
 % pick out whether contrast or delay is first
-if mod(sessionnum,2)
+if mod(sessionnum+delayfirst,2)
     exptype1 = 'Contrast';
     exptype2 = 'Delay';
 else

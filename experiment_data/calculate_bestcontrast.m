@@ -36,4 +36,4 @@ slope = diff(contrastVec(lowidx:highidx))/diff(mucdf(lowidx:highidx));
 best_contrast = contrastVec(lowidx) + slope*(0.5 - mucdf(lowidx)); % linear interpolation
 best_contrast = exp(best_contrast)/100; % in proportion contrast
 
-% plot(contrastVec,mupdf,'k-')
+% plot(exp(contrastVec),muVec_condition)
