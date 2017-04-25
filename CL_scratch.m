@@ -5,8 +5,8 @@ plot(xx,betapdf(xx,1.3,4))
 
 
 %% check percent correct as a function of session
-subjid = 'DC';
-exptype = 'Delay';
+subjid = 'MP';
+exptype = 'Contrast';
 
 filepath = 'experiment_data/output_mat/round4/';
 filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
@@ -20,6 +20,49 @@ defaultplot;
 hold off
 xlabel('block number')
 ylabel('PC')
+
+
+%% check percent correct as a function of delta and confidence
+clear all
+
+subjid = 'AHY';
+exptype = 'Delay';
+
+filepath = 'experiment_data/output_mat/round4/';
+filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
+load([filepath filename],'designMat','stimuliMat','names')
+
+% plotting as a function of delta
+deltaVec = unique(abs(designMat(:,1)));
+nDeltas = length(deltaVec);
+PCVec = nan(1,nDeltas);
+for idelta = 1:nDeltas
+    delta = deltaVec(idelta);
+    idx = (abs(designMat(:,1)) == delta);
+    
+    PCVec(idelta) = nanmean(designMat(idx,10));
+end
+figure;
+plot(deltaVec,PCVec,'ok')
+xlabel('delta')
+ylabel('PC')
+ylim([0 1])
+defaultplot
+
+% plotting as a function of confidence
+nConf = 4;
+PCVec = nan(1,nConf);
+for iconf = 1:nConf
+    idx = (designMat(:,12) == iconf);
+    
+    PCVec(iconf) = mean(designMat(idx,10));
+end
+figure;
+plot(PCVec,'ok')
+xlabel('confidence')
+ylabel('PC')
+ylim([0 1])
+defaultplot
 
 
 %% logistic regression: pc ~ condition + delta
