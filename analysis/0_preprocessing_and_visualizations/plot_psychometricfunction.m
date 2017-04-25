@@ -1,4 +1,4 @@
-function plot_psychometricfunction(subjids,exptype,condVec)
+function [pc, pc_std] = plot_psychometricfunction(subjids,exptype,condVec)
 % plot psychometric function for single or multiple subjects
 
 % subjids = {'AHY'};
@@ -12,13 +12,13 @@ pic = nan(nSubj,nCond,length(delta));
 pii = nan(nSubj,nCond,length(delta));
 
 pc_std = nan(nCond,length(delta)); pic_std = pc_std; pii_std = pc_std;
-for isubj = 1:nSubj;
+for isubj = 1:nSubj
     
     % load file
     subjid = subjids{isubj};
     load(sprintf('processeddata_ChangeLocalization_%s_subj%s.mat',exptype,subjid));
     
-    for icond = 1:nCond;
+    for icond = 1:nCond
         
         v2struct(data{icond})
         
@@ -33,7 +33,7 @@ for isubj = 1:nSubj;
         % plot incorrect in incorrect interval
         pii(isubj,icond,:) = Rmat(:,3)./sum(Rmat,2);
         
-        if nSubj == 1;
+        if nSubj == 1
             pc_std(icond,:) = sqrt(squeeze(pc(isubj,icond,:).*(1-pc(isubj,icond,:))));
             pic_std(icond,:) = sqrt(squeeze(pic(isubj,icond,:)).*squeeze((1-pic(isubj,icond,:))));
             pii_std(icond,:) = sqrt(squeeze(pii(isubj,icond,:).*(1-pii(isubj,icond,:))));
@@ -47,7 +47,7 @@ pc_new = nan(nSubj,nCond,nBins_new);
 pic_new = nan(nSubj,nCond,nBins_new);
 pii_new = nan(nSubj,nCond,nBins_new);
 deltanew = nan(1,nBins_new);
-for ibin = 1:nBins_new;
+for ibin = 1:nBins_new
     deltanew(ibin) = mean(delta((ibin-1)*combinebins+1 : ibin*combinebins));
     pc_new(:,:,ibin) = mean(pc(:,:,(ibin-1)*combinebins+1 : ibin*combinebins),3);
     pic_new(:,:,ibin) = mean(pic(:,:,(ibin-1)*combinebins+1 : ibin*combinebins),3);

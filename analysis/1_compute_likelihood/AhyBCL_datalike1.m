@@ -81,7 +81,7 @@ end
 
 if Nset2 > 0
     % Is the change in the second set?
-    change = (Cset == 2);    
+    change = (Cset == 2);
     % Generate noisy measurements for stimuli in the 2nd interval
     [x2,kappa2] = drawnoisy(Jbar2,tau,Nstim,Nsamples,Nset2,change,ds);
     if size(x2,1) == 1; x2 = repmat(x2,[Nstim,1,1]); end
