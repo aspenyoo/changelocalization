@@ -18,7 +18,8 @@ end
 % modstr = sprintf('model%d',model); % string used for saving
 
 % Load dataset
-load(sprintf('processeddata_ChangeLocalization_%s_subj%s.mat',exptype,subjid));
+filepath = '/home/ay963/changelocalization/experiment_data/output_mat/';
+load(sprintf('%sprocesseddata_ChangeLocalization_%s_subj%s.mat',filepath,exptype,subjid));
 
 % Set parameter bounds
 jbar_bounds = [0.0067,35];  % Hard bounds for JBAR1 and JBAR2
@@ -42,7 +43,8 @@ nvars = numel(PLB);
 x0_list = lhs(runmax,nvars,PLB,PUB,[],1e3);
 
 % stuff for file saving
-filename = sprintf('ChangeLocalization_%s_model%d_subj%s.txt',exptype,model,subjid);
+filepath = '/home/ay963/changelocalization/analysis/2_fitdata/fits/';
+filename = sprintf('%sChangeLocalization_%s_model%d_subj%s.txt',filepath,exptype,model,subjid);
 permission = 'a+';
 formatSpec = repmat('%4.4f \t ',1,nvars+2);
 formatSpec = [formatSpec(1:end-3) '\r\n'];

@@ -14,8 +14,8 @@ hist(samples,100)
 axis([0 200, 0 1e5]);
 
 %% check percent correct as a function of session
-subjid = 'MP';
-exptype = 'Contrast';
+subjid = 'DC';
+exptype = 'Delay';
 
 filepath = 'experiment_data/output_mat/round4/';
 filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
@@ -34,8 +34,8 @@ ylabel('PC')
 %% check percent correct as a function of delta and confidence
 clear all
 
-subjid = 'AHY';
-exptype = 'Delay';
+subjid = 'DC';
+exptype = 'Contrast';
 
 filepath = 'experiment_data/output_mat/round4/';
 filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
@@ -236,47 +236,9 @@ sca;
 ShowCursor;
 
 
-%% FIT MOC psychometric function
-% 08.16.2016
 
-clear all
 
-mixedcontrast = 1; 
-subjid = 'AMM';
-psychofun = @(x) lambda/2 + (1-lambda).*0.5*(1+erf((x-mu)./(sqrt(2)*sigma)));
-
-if (mixedcontrast)
-    concatvars = concatcode('experiment_data/output_mat/',['ContrastFn_MOC_' subjid '_'],{'designMat','stimuliMat'});
-    v2struct(concatvars);
-%     load('ContrastFn_MOC_MIX_20160804T220952.mat')
-    designMat = designMat(stimuliMat(:,5) >= 3,:);
-    titlee = 'mixed contrast';
-else
-    concatvars = concatcode('experiment_data/output_mat/',['ContrastFn_MOC_' subjid '_'],{'designMat','stimuliMat'});
-    v2struct(concatvars);
-%     load('ContrastFn_MOC_AHY_20160804T215847.mat')
-titlee = 'same contrast';
-end
-
-contrastVec = unique(designMat(:,1));
-nContrasts = length(contrastVec);
-
-PC = nan(1,nContrasts);
-for icontrast = 1:nContrasts;
-    contrast = contrastVec(icontrast);
-    
-    PC(icontrast) = nanmean(designMat(designMat(:,1) == contrast,3));
-end
-
-figure
-plot((contrastVec),PC,'k*')
-defaultplot
-ylabel('percent correct')
-xlabel('contrast')
-ylim([0.5 1])
-title(titlee)
-
-% ============================================
+%% ============================================
 %       LOOKING AT PARAMETER FITS
 % ============================================
 
