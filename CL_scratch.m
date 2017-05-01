@@ -243,29 +243,29 @@ ShowCursor;
 % ============================================
 
 %% COMPILE MODEL FITS FOR ALL SUBJECTS
+clear all
 
 modelVec = [1 2];
-subjids = {'ALM','DR','EN','MR'};
+subjids = {'1','2','3','4','5','6'};
 exptypeVec = {'Contrast','Delay'};
-filelocation = 'results/vss-dec2016/txt/';
+filepath = 'analysis/2_fitdata/fits/';
 
 nSubjs = length(subjids);
 nModels = length(modelVec);
 nExptype = length(exptypeVec);
-nParams = 3;
-
+nParams = 4;
 
 for imodel = 1:nModels
-    model = modelVec(imodel);
+    model = modelVec(imodel)
     modelstr = ['model' num2str(model)];
     
     for iexptype = 1:nExptype
-        exptype = exptypeVec{iexptype};
-        
+        exptype = exptypeVec{iexptype}
         
         for isubj = 1:nSubjs
+            isubj
             subjid = subjids{isubj};
-            filename = sprintf('%sChangeLocalization_%s_model%d_subj%s.txt',filelocation,exptype,model,subjid);
+            filename = sprintf('%sChangeLocalization_%s_model%d_subj%s.txt',filepath,exptype,model,subjid);
             alldata = dlmread(filename);
             
             datasorted = sortrows(alldata,nParams+1);
@@ -276,15 +276,17 @@ for imodel = 1:nModels
     
 end
 
-save('modelfits.mat','fits')
+save([filepath 'modelfits.mat'],'fits')
 
 %% MODEL COMPARISON
 
-Contrast_AICMat = -2.*[fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec]+6;
-Delay_AICMat = -2.* [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]+6;
+nParams = 4;
+Contrast_AICMat = -2.*[fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec]+2*nParams;
+Delay_AICMat = -2.* [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]+2*nParams;
 modcomp = Contrast_AICMat + Delay_AICMat;
+nSubj = size(modcomp,2);
 
-comparetype = 2;
+comparetype = 3;
 switch comparetype
     case 1 % just contrast
         comparevalue = Contrast_AICMat;
@@ -297,7 +299,8 @@ end
 % positive number means 
 moddiff = bsxfun(@minus,comparevalue,comparevalue(1,:))
 mean_moddiff = mean(moddiff,2)
-sem_moddiff = std(moddiff,[],2)./sqrt(4)
+sem_moddiff = std(moddiff,[],2)./sqrt(nSubj)
+bar(moddiff')
 
 %% =======================
 %  PLOTS
@@ -305,11 +308,11 @@ sem_moddiff = std(moddiff,[],2)./sqrt(4)
 
 clear all
 
-filelocation = 'results/vss-dec2016/txt-lapse/';
-load([filelocation 'modelfits.mat'])
-subjids = {'ALM','DR','EN','MR'};
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'])
+subjids = {'1','2','3','4','5','6'};
 exptype = 'Delay';
-model = 2;
+model = 1;
 modelstr = sprintf('model%d',model);
 
 nSubj = length(subjids);
@@ -353,11 +356,12 @@ end
 
 clear all
 
-filelocation = 'results/vss-dec2016/txt/';
-load([filelocation 'modelfits.mat'])
-subjids = {'ALM','DR','EN','MR'};
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'])
+subjids = {'1','2','3','4','5','6'};
+% subjids = {'ALM','DR','EN','MR'};
 exptype = 'Delay';
-model = 2;
+model = 1;
 
 modelstr = sprintf('model%d',model);
 nSubj = length(subjids);
