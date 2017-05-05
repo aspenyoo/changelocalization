@@ -19,6 +19,7 @@ end
 
 % Load dataset
 filepath = '/home/ay963/changelocalization/experiment_data/output_mat/';
+% filepath = 'experiment_data/output_mat/';
 load(sprintf('%sprocesseddata_ChangeLocalization_%s_subj%s.mat',filepath,exptype,subjid));
 
 % Set parameter bounds
@@ -57,7 +58,7 @@ for iter = 1:numel(runlist)
     
     x0 = x0_list(runlist(iter),:);
     [xbest,fval,exitflag,output] = ...
-        bps(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1)),x0,LB,UB,PLB,PUB,options);    
+        bads(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1)),x0,LB,UB,PLB,PUB,[],options);    
     xbest = [exp(xbest(1:3)) xbest(4)];
         
     % Evaluate function with high precision

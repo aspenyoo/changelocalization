@@ -14,8 +14,8 @@ hist(samples,100)
 axis([0 200, 0 1e5]);
 
 %% check percent correct as a function of session
-subjid = 'DC';
-exptype = 'Delay';
+subjid = 'MP';
+exptype = 'Contrast';
 
 filepath = 'experiment_data/output_mat/round4/';
 filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
@@ -34,7 +34,7 @@ ylabel('PC')
 %% check percent correct as a function of delta and confidence
 clear all
 
-subjid = 'DC';
+subjid = 'JP';
 exptype = 'Contrast';
 
 filepath = 'experiment_data/output_mat/round4/';
