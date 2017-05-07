@@ -34,7 +34,7 @@ ylabel('PC')
 %% check percent correct as a function of delta and confidence
 clear all
 
-subjid = 'DC';
+subjid = 'JP';
 exptype = 'Contrast';
 
 filepath = 'experiment_data/output_mat/round4/';
