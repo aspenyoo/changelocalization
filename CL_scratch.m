@@ -13,6 +13,11 @@ subplot(1,2,2)
 hist(samples,100)
 axis([0 200, 0 1e5]);
 
+
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%           DATA RELATED
+% % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
 %% check percent correct as a function of session
 subjid = '6';
 exptype = 'Delay';
@@ -73,6 +78,9 @@ ylabel('PC')
 ylim([0 1])
 defaultplot
 
+%% % % % % % % % % % % % % % % % % % % % % % % 
+%           STATS
+% % % % % % % % % % % % % % % % % % % % % % % 
 
 %% logistic regression: pc ~ condition + delta
 clear all
@@ -137,6 +145,9 @@ X = [ones(size(designMat,1),1) X];
 % predictedConf(logoddssign(:,3) == -1) = 4;
 % hold on; plot(xx,predictedConf);
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%        MODEL RELATED
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
 
 %% create model fit datat psychometric fn
 clear all
@@ -239,14 +250,14 @@ ShowCursor;
 
 
 %% ============================================
-%       LOOKING AT PARAMETER FITS
+%       REAL DATA STUFF
 % ============================================
 
 %% COMPILE MODEL FITS FOR ALL SUBJECTS
 clear all
 
 modelVec = [1 2];
-subjids = {'1','2','3','4','5','6'};
+subjids = {'1','2','3','4','5','6','7','8','9'};
 exptypeVec = {'Contrast','Delay'};
 filepath = 'analysis/2_fitdata/fits/';
 
@@ -279,6 +290,12 @@ end
 save([filepath 'modelfits.mat'],'fits')
 
 %% MODEL COMPARISON
+clear all
+
+comparetype = 'Contrast';
+
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'],'fits')
 
 nParams = 4;
 Contrast_AICMat = -2.*[fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec]+2*nParams;
@@ -286,13 +303,13 @@ Delay_AICMat = -2.* [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]+2*nParams
 modcomp = Contrast_AICMat + Delay_AICMat;
 nSubj = size(modcomp,2);
 
-comparetype = 2;
+
 switch comparetype
-    case 1 % just contrast
+    case 'Contrast' % just contrast
         comparevalue = Contrast_AICMat;
-    case 2 % just delay
+    case 'Delay' % just delay
         comparevalue = Delay_AICMat;
-    case 3 % both
+    case 'both' % both
         comparevalue = modcomp;
 end
 
@@ -305,16 +322,16 @@ bar(moddiff')
 
 %% =======================
 %  PLOTS
-% ===================
+% =======================
 
 clear all
 
 filepath = 'analysis/2_fitdata/fits/';
 load([filepath 'modelfits.mat'])
 % subjids = {'1','2','3','4','5','6'};
-subjids = {'6'};
+subjids = {'7'};
 exptype = 'Contrast';
-model = 1;
+model = 2;
 modelstr = sprintf('model%d',model);
 
 nSubj = length(subjids);
@@ -360,9 +377,9 @@ clear all
 
 filepath = 'analysis/2_fitdata/fits/';
 load([filepath 'modelfits.mat'])
-subjids = {'1','2','3','4','5','6'};
+subjids = {'1','2','3','4','5','6','7','8','9'};
 % subjids = {'ALM','DR','EN','MR'};
-exptype = 'Delay';
+exptype = 'Contrast';
 model = 1;
 
 modelstr = sprintf('model%d',model);
