@@ -14,8 +14,8 @@ hist(samples,100)
 axis([0 200, 0 1e5]);
 
 %% check percent correct as a function of session
-subjid = 'MP';
-exptype = 'Contrast';
+subjid = '6';
+exptype = 'Delay';
 
 filepath = 'experiment_data/output_mat/round4/';
 filename = ['Exp_ChangeLocalization_' exptype '_subj' subjid '.mat'];
@@ -286,7 +286,7 @@ Delay_AICMat = -2.* [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]+2*nParams
 modcomp = Contrast_AICMat + Delay_AICMat;
 nSubj = size(modcomp,2);
 
-comparetype = 3;
+comparetype = 2;
 switch comparetype
     case 1 % just contrast
         comparevalue = Contrast_AICMat;
@@ -300,6 +300,7 @@ end
 moddiff = bsxfun(@minus,comparevalue,comparevalue(1,:))
 mean_moddiff = mean(moddiff,2)
 sem_moddiff = std(moddiff,[],2)./sqrt(nSubj)
+figure;
 bar(moddiff')
 
 %% =======================
@@ -310,8 +311,9 @@ clear all
 
 filepath = 'analysis/2_fitdata/fits/';
 load([filepath 'modelfits.mat'])
-subjids = {'1','2','3','4','5','6'};
-exptype = 'Delay';
+% subjids = {'1','2','3','4','5','6'};
+subjids = {'6'};
+exptype = 'Contrast';
 model = 1;
 modelstr = sprintf('model%d',model);
 
@@ -320,7 +322,7 @@ deltaVec = 2.5:5:87.5;
 
 for isubj = 1:nSubj
 subjid = subjids{isubj};
-bfp = fits.(modelstr).(exptype).bfpMat(isubj,:);
+bfp = fits.(modelstr).(exptype).bfpMat(str2double(subjid),:);
 try
 if bfp(4) == 0
     bfp(4) = 1e-6;
@@ -335,7 +337,7 @@ Nsamples = 1000; % default if empty
 % plot psychometric function
 figure;
 hold on;
-colors = aspencolors(4,'pastel');%['b'; 'y'; 'g'; 'r'];
+colors = aspencolors(4,'pastel'); %['b'; 'y'; 'g'; 'r'];
 condlegendd = {'0/2', '2/1','2/2','4/1'};
 for icond = 1:4
     subplot(2,2,icond)
