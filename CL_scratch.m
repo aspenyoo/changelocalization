@@ -14,9 +14,9 @@ hist(samples,100)
 axis([0 200, 0 1e5]);
 
 
-%% % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+%% % % % % % % % % % % % % % % % % % % % % % % % % % % %
 %           DATA RELATED
-% % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 %% check percent correct as a function of session
 subjid = '6';
@@ -78,9 +78,9 @@ ylabel('PC')
 ylim([0 1])
 defaultplot
 
-%% % % % % % % % % % % % % % % % % % % % % % % 
+%% % % % % % % % % % % % % % % % % % % % % % %
 %           STATS
-% % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % %
 
 %% logistic regression: pc ~ condition + delta
 clear all
@@ -145,9 +145,9 @@ X = [ones(size(designMat,1),1) X];
 % predictedConf(logoddssign(:,3) == -1) = 4;
 % hold on; plot(xx,predictedConf);
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 %        MODEL RELATED
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 %% create model fit datat psychometric fn
 clear all
@@ -313,62 +313,119 @@ switch comparetype
         comparevalue = modcomp;
 end
 
-% positive number means 
+% positive number means
 moddiff = bsxfun(@minus,comparevalue,comparevalue(1,:))
 mean_moddiff = mean(moddiff,2)
 sem_moddiff = std(moddiff,[],2)./sqrt(nSubj)
 figure;
 bar(moddiff')
 
+
+%% mdoel comparison
+
+clear all
+exptype = 'Delay';
+comptype = 'BIC';
+
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'],'fits')
+
+nLLMat = [fits.model1.(exptype).LLVec'  fits.model2.(exptype).LLVec'];
+nSubj = size(nLLMat,1);
+nParamsVec = [4 4]; % both models have 4 parameters
+nTrialsVec = 1440*ones(1,nSubj);
+
+[AIC, BIC, AICc] = modcomp(nLLMat,nParamsVec,nTrialsVec);
+
+switch comptype
+    case 'AIC'
+        val1 = AIC;
+    case 'AICc'
+        val1 = AICc;
+    case 'BIC'
+        val1 = BIC;
+end
+
+moddiff = bsxfun(@minus,val1,val1(:,1))
+mean_moddiff = mean(moddiff)
+sem_moddiff = std(moddiff)./sqrt(nSubj)
+figure;
+bar(moddiff(:,2))
+% bar(sort(moddiff(:,2)))
+
+%% bayesian model selection
+
+BMSMat = -BIC./2;
+
+[alpha, expr, xp, pxp, bor] = spm_BMS(BMSMat);
+% pmodel = expr*nums; % number of subjects from each model
+
 %% =======================
 %  PLOTS
 % =======================
+
+
+%% indvl subject psychometric function
+
+clear all
+subjids = {'1','2','3','4','5','6','7','8','9'};
+exptype = 'Delay';
+condVec = [1 4];
+nSubj = length(subjids);
+
+for isubj = 1:nSubj;
+    
+    figure;
+    plot_psychometricfunction(subjids(isubj),exptype,condVec); % plot real data
+    pause
+end
+%% indvl subjects model fits and data plots
 
 clear all
 
 filepath = 'analysis/2_fitdata/fits/';
 load([filepath 'modelfits.mat'])
 % subjids = {'1','2','3','4','5','6'};
-subjids = {'7'};
-exptype = 'Contrast';
-model = 2;
+subjids = {'3'};
+exptype = 'Delay';
+model = 1;
 modelstr = sprintf('model%d',model);
 
 nSubj = length(subjids);
 deltaVec = 2.5:5:87.5;
 
 for isubj = 1:nSubj
-subjid = subjids{isubj};
-bfp = fits.(modelstr).(exptype).bfpMat(str2double(subjid),:);
-try
-if bfp(4) == 0
-    bfp(4) = 1e-6;
-end
-end
-
-X = []; % data in luigiform
-Nsamples = 1000; % default if empty
-
-[~,prmat,X] = AhyBCL_datalikeall(bfp,X,model,Nsamples);
-
-% plot psychometric function
-figure;
-hold on;
-colors = aspencolors(4,'pastel'); %['b'; 'y'; 'g'; 'r'];
-condlegendd = {'0/2', '2/1','2/2','4/1'};
-for icond = 1:4
-    subplot(2,2,icond)
-    plot_psychometricfunction({subjid},exptype,icond); % plot real data
-    pc = prmat{icond}(:,1)';
-    pc_std = pc.*(1-pc)./24;
-    plot_summaryfit(deltaVec,[],[],pc,pc_std,colors(icond,:),colors(icond,:));
-    title(condlegendd{icond})
-    axis([0 90 0 1])
-    ax = gca;
-    ax.XTick = [0 30 60 90];
-    ax.YTick = 0:.5:1;
-    %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
-end
+    subjid = subjids{isubj};
+    bfp = fits.(modelstr).(exptype).bfpMat(str2double(subjid),:);
+    try
+        if bfp(4) == 0
+            bfp(4) = 1e-6;
+        end
+    end
+    
+    X = []; % data in luigiform
+    Nsamples = 1000; % default if empty
+    
+    [~,prmat,X] = AhyBCL_datalikeall(bfp,X,model,Nsamples);
+    
+    % plot psychometric function
+    figure;
+    hold on;
+    colors = aspencolors(4,'pastel'); %['b'; 'y'; 'g'; 'r'];
+    condlegendd = {'0/2', '2/1','2/2','4/1'};
+    for icond = 1:4
+        subplot(2,2,icond)
+        plot_psychometricfunction({subjid},exptype,icond); % plot real data
+        pc = prmat{icond}(:,1)';
+        pc_std = pc.*(1-pc)./24;
+        plot_summaryfit(deltaVec,[],[],pc,pc_std,colors(icond,:),colors(icond,:));
+        title(condlegendd{icond})
+        axis([0 90 0 1])
+        ax = gca;
+        ax.XTick = [0 30 60 90];
+        ax.YTick = 0:.5:1;
+        %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+    end
 end
 
 %% average plot
@@ -391,9 +448,9 @@ for isubj = 1:nSubj
     subjid = subjids{isubj};
     bfp = fits.(modelstr).(exptype).bfpMat(isubj,:);
     try
-    if bfp(4) == 0
-        bfp(4) = 1e-6;
-    end
+        if bfp(4) == 0
+            bfp(4) = 1e-6;
+        end
     end
     
     X = []; % data in luigiform
