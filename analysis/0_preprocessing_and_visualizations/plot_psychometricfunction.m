@@ -76,12 +76,14 @@ if ~(errorbarplot)
 end
 
 % subplot(2,2,1);
-colors = aspencolors(4,'pastel');%['b'; 'y'; 'g'; 'r'];
+% colors = zeros(4,3);
+colors = aspencolors(4,'passport');%['b'; 'y'; 'g'; 'r'];
 % figure; hold on;
 hold on;
 legendd = cell(1,length(condVec));
 for icond = 1:length(condVec)
-    errorbar(delta,squeeze(mean(pc(:,condVec(icond),:),1)),pc_std(condVec(icond),:),'Color',colors(condVec(icond),:));
+    errorb(delta,squeeze(mean(pc(:,condVec(icond),:),1)),pc_std(condVec(icond),:),...
+        'Color',colors(condVec(icond),:));%,'LineStyle','none');
     legendd{icond} = ['cond' num2str(condVec(icond))];
 end
 % errorbar(delta,squeeze(mean(pc(:,4,:),1)),pc_std(4,:),'Color',0.7*ones(1,3),'LineStyle','-');
@@ -91,7 +93,7 @@ defaultplot;
 ax = gca;
 ax.XTick = [0 30 60 90];
 ax.YTick = [0 0.5 1];
-legend(legendd)
+% legend(legendd)
 
 % % plot pc psychometric functions for the two 2 conditions
 % subplot(2,2,2);

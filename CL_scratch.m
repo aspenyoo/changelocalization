@@ -300,8 +300,8 @@ load([filepath 'modelfits.mat'],'fits')
 nParams = 4;
 Contrast_AICMat = -2.*[fits.model1.Contrast.LLVec; fits.model2.Contrast.LLVec]+2*nParams;
 Delay_AICMat = -2.* [fits.model1.Delay.LLVec; fits.model2.Delay.LLVec]+2*nParams;
-modcomp = Contrast_AICMat + Delay_AICMat;
-nSubj = size(modcomp,2);
+modcompp = Contrast_AICMat + Delay_AICMat;
+nSubj = size(modcompp,2);
 
 
 switch comparetype
@@ -310,7 +310,7 @@ switch comparetype
     case 'Delay' % just delay
         comparevalue = Delay_AICMat;
     case 'both' % both
-        comparevalue = modcomp;
+        comparevalue = modcompp;
 end
 
 % positive number means
@@ -323,14 +323,14 @@ bar(moddiff')
 
 %% mdoel comparison
 
-clear all
+% clear all
 exptype = 'Delay';
 comptype = 'BIC';
 
 filepath = 'analysis/2_fitdata/fits/';
 load([filepath 'modelfits.mat'],'fits')
 
-nLLMat = [fits.model1.(exptype).LLVec'  fits.model2.(exptype).LLVec'];
+nLLMat = [-fits.model1.(exptype).LLVec'  -fits.model2.(exptype).LLVec'];
 nSubj = size(nLLMat,1);
 nParamsVec = [4 4]; % both models have 4 parameters
 nTrialsVec = 1440*ones(1,nSubj);
@@ -338,6 +338,8 @@ nTrialsVec = 1440*ones(1,nSubj);
 [AIC, BIC, AICc] = modcomp(nLLMat,nParamsVec,nTrialsVec);
 
 switch comptype
+    case 'nLL'
+        val1 = nLLMat;
     case 'AIC'
         val1 = AIC;
     case 'AICc'
@@ -349,16 +351,76 @@ end
 moddiff = bsxfun(@minus,val1,val1(:,1))
 mean_moddiff = mean(moddiff)
 sem_moddiff = std(moddiff)./sqrt(nSubj)
+
+% bar(moddiff(:,2))
+
+
+% colors
+terracotta = 'k';% aspencolors('terracotta');
+green = 'k';%aspencolors('leafgreen');
+
 figure;
-bar(moddiff(:,2))
-% bar(sort(moddiff(:,2)))
+bar(sort(moddiff(:,2)),'k');
+ylim([-25 50])
+defaultplot
+set(gca,'YTick',-25:25:50)
+% blah = moddiff(:,2);%sort(moddiff(:,2));
+% idx1 = blah < 0;
+% listt = 1:nSubj;
+% 
+% bar(listt(idx1),blah(idx1),'EdgeColor','none','FaceColor',terracotta);
+% hold on;
+% bar(listt(~idx1),blah(~idx1),'EdgeColor','none','FaceColor',green);
+% set(gca,'XTick',[])
+% defaultplot
 
 %% bayesian model selection
 
 BMSMat = -BIC./2;
 
-[alpha, expr, xp, pxp, bor] = spm_BMS(BMSMat);
+[alpha2, expr2, xp2, pxp2, bor2] = spm_BMS(BMSMat)
 % pmodel = expr*nums; % number of subjects from each model
+
+
+%% expr barplot
+
+a01 = sum(alpha1);
+exprSD1 = sqrt(alpha1.*(a01-alpha1)./(a01^2 .*(a01+1)));
+
+a02 = sum(alpha2);
+exprSD2 = sqrt(alpha2.*(a02-alpha2)./(a02^2 .*(a02+1)));
+
+figure
+axis([0.5 2.5 0 1])
+bar([2 1],expr1,'FaceColor','none');
+hold on; 
+errorb([2 1],expr1,exprSD1)
+set(gca,'XTick', 1:2, 'XTickLabel',{'max','optimal'},'YTick',0:0.5:1)
+axis([0.5 2.5 0 1])
+defaultplot
+
+figure
+axis([0.5 2.5 0 1])
+bar([2 1],expr2,'FaceColor','none');
+hold on; 
+errorb([2 1],expr2,exprSD2)
+set(gca,'XTick', 1:2, 'XTickLabel',{'max','optimal'},'YTick',0:0.5:1)
+axis([0.5 2.5 0 1])
+defaultplot
+
+
+%% pxp
+figure
+bar([2 1],pxp1,'FaceColor','none');%,'.','MarkerSize',18')
+axis([0.5 2.5 0 1])
+set(gca,'XTick', 1:2, 'XTickLabel',{'max','optimal'},'YTick',0:0.5:1)
+defaultplot
+
+figure
+bar([2 1],pxp2,'FaceColor','none');%,'.','MarkerSize',18')
+axis([0.5 2.5 0 1])
+set(gca,'XTick', 1:2, 'XTickLabel',{'max','optimal'},'YTick',0:0.5:1)
+defaultplot
 
 %% =======================
 %  PLOTS
@@ -379,6 +441,63 @@ for isubj = 1:nSubj;
     plot_psychometricfunction(subjids(isubj),exptype,condVec); % plot real data
     pause
 end
+
+%% VSS MODEL FIT PLOTS
+
+clear all
+
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'])
+subjid = {'7'};
+exptype = 'Contrast';
+
+deltaVec = 2.5:5:87.5;
+colorMat = [aspencolors('terracotta');aspencolors('leafgreen')];
+
+% condlegendd = {'0/2', '2/1','2/2','4/1'};
+subplotVec = [3 1 2 4];
+figure;
+[ha, pos] = tight_subplot(2,2,.05,[.1 .03],[.1 .03]);
+for imodel = 1:2;
+    bfp = fits.(['model' num2str(imodel)]).(exptype).bfpMat(str2double(subjid),:);
+    try
+        if bfp(4) == 0
+            bfp(4) = 5e-3;
+        end
+    end
+    
+    X = []; % data in luigiform
+    Nsamples = 1000; % default if empty
+    
+    [~,prmat,X] = AhyBCL_datalikeall(bfp,X,imodel,Nsamples);
+    
+    % plot psychometric function
+    
+    hold on;
+    colors = colorMat(imodel,:);
+    for icond = 1:4
+        %         subplot(2,2,subplotVec(icond))
+        axes(ha(subplotVec(icond)))
+        pc = prmat{icond}(:,1)';
+        pc_std = pc.*(1-pc)./24;
+        plot_summaryfit(deltaVec,[],[],pc,pc_std,colors,colors);
+        axis([0 90 0 1]);
+        ax = ha(subplotVec(icond));
+        ax.XTick = [0 30 60 90];
+        ax.YTick = 0:.5:1;
+        if any(subplotVec(icond) == [2 4]); ax.YTickLabel = []; else ax.YTickLabel = 0:.5:1; end
+        if any(subplotVec(icond) == [1 2]); ax.XTickLabel = []; else ax.XTickLabel = [0 30 60 90]; end
+        ax.FontSize = 14;
+        %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+    end
+end
+
+for icond = 1:4
+    axes(ha(subplotVec(icond))); hold on
+    %     subplot(2,2,icond)
+    plot_psychometricfunction(subjid,exptype,icond); % plot real data
+end
+
 %% indvl subjects model fits and data plots
 
 clear all
@@ -411,7 +530,7 @@ for isubj = 1:nSubj
     % plot psychometric function
     figure;
     hold on;
-    colors = aspencolors(4,'pastel'); %['b'; 'y'; 'g'; 'r'];
+    colors = aspencolors(4,'passport'); %['b'; 'y'; 'g'; 'r'];
     condlegendd = {'0/2', '2/1','2/2','4/1'};
     for icond = 1:4
         subplot(2,2,icond)
@@ -428,7 +547,7 @@ for isubj = 1:nSubj
     end
 end
 
-%% average plot
+%% average plot subplot
 
 clear all
 
@@ -483,4 +602,225 @@ for icond = 1:4
     ax.XTick = [0 30 60 90];
     ax.YTick = 0:.5:1;
     %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+end
+
+%% indvl subjects model fits and data plots
+
+clear all
+
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'])
+subjids = {'3'};
+exptype = 'Delay';
+model = 2;
+modelstr = sprintf('model%d',model);
+
+nSubj = length(subjids);
+deltaVec = 2.5:5:87.5;
+
+for isubj = 1:nSubj
+    subjid = subjids{isubj};
+    bfp = fits.(modelstr).(exptype).bfpMat(str2double(subjid),:);
+    try
+        if bfp(4) == 0
+            bfp(4) = 1e-6;
+        end
+    end
+    
+    X = []; % data in luigiform
+    Nsamples = 1000; % default if empty
+    
+    [~,prmat,X] = AhyBCL_datalikeall(bfp,X,model,Nsamples);
+    
+    % plot psychometric function
+    figure;
+    hold on;
+    colors = aspencolors(4,'passport'); %['b'; 'y'; 'g'; 'r'];
+    condlegendd = {'0/2', '2/1','2/2','4/1'};
+    for icond = 1:4
+        plot_psychometricfunction({subjid},exptype,icond); % plot real data
+        pc = prmat{icond}(:,1)';
+        pc_std = pc.*(1-pc)./24;
+        plot_summaryfit(deltaVec,[],[],pc,pc_std,colors(icond,:),colors(icond,:));
+        title(condlegendd{icond})
+        axis([0 90 0 1])
+        ax = gca;
+        ax.XTick = [0 30 60 90];
+        ax.YTick = 0:.5:1;
+        %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+    end
+end
+
+%% average plot on two plots
+
+clear all
+
+filepath = 'analysis/2_fitdata/fits/';
+load([filepath 'modelfits.mat'])
+subjids = {'1','2','3','4','5','6','7','8','9'};
+% subjids = {'ALM','DR','EN','MR'};
+exptype = 'Contrast';
+model = 2;
+condVec = [3];
+% condlegendd = {'0/2', '2/1','2/2','4/1'};
+
+modelstr = sprintf('model%d',model);
+nSubj = length(subjids);
+deltaVec = 2.5:5:87.5;
+nConds = length(condVec);
+
+PRMat = cell(1,4);
+for isubj = 1:nSubj
+    subjid = subjids{isubj};
+    bfp = fits.(modelstr).(exptype).bfpMat(isubj,:);
+    try
+        if bfp(4) == 0
+            bfp(4) = 1e-6;
+        end
+    end
+    
+    X = []; % data in luigiform
+    Nsamples = 1000; % default if empty
+    
+    [~,prmat,X] = AhyBCL_datalikeall(bfp,X,model,Nsamples);
+    
+    PRMat = cellfun(@(x,y) [x;y(:,1)'],PRMat,prmat,'UniformOutput',false);
+    
+end
+mean_mod = cellfun(@mean,PRMat,'UniformOutput',false);
+sem_mod = cellfun(@(x) std(x)/sqrt(size(x,1)),PRMat,'UniformOutput',false);
+mean_mod= reshape(cell2mat(mean_mod),[18 4])';
+sem_mod = reshape(cell2mat(sem_mod),[18 4])';
+
+% plot psychometric function
+% figure;
+% hold on;
+colors = aspencolors(4,'passport');%['b'; 'y'; 'g'; 'r'];
+
+
+[ha, pos] = tight_subplot(1,2,.05,[.1 .03],[.1 .03]);
+for icond = 1:nConds
+    cond = condVec(icond);
+    
+    if mod(cond,3) == 1; axes(ha(1)); ax = ha(1); else axes(ha(2));ax = ha(2); end
+    
+    plot_psychometricfunction(subjids,exptype,cond); % plot real data
+    plot_summaryfit(deltaVec,[],[],mean_mod(cond,:),sem_mod(cond,:),colors(cond,:),colors(cond,:));
+    %     fill([deltaVec fliplr(deltaVec)],[pc-pc_std fliplr(pc + pc_std)],colors(icond,:))
+    axis([0 90 0 1])
+
+ax.XTick = [0 30 60 90];
+ax.XTickLabel = [0 30 60 90];
+ax.YTick = 0:.5:1;
+ax.FontSize = 14;
+end
+ha(1).YTickLabel = 0:.5:1;
+
+%% lines of PC w/in and across participants
+
+clear all
+subjidVec = {'1','2','3','4','5','6','7','8','9'};
+exptype = 'Delay';
+nSubj = length(subjidVec);
+
+clf; hold on
+axis([0.5 4.5 .3 .8])
+condVec = [4 2 3 1];
+colorMat = aspencolors(4,'passport');
+
+for isubj = 1:nSubj;
+    subj = subjidVec{isubj};
+    
+    filepath = 'experiment_data/output_mat/';
+    load(sprintf('%sprocesseddata_ChangeLocalization_%s_subj%s.mat',filepath,exptype,subj));
+    
+    for icond = 1:4;
+        PC(isubj,icond) = sum(data{icond}.Rmat(:,1))/sum(data{icond}.Rmat(:));
+    end
+    
+    plot(1:4,PC(isubj,condVec),'Color',0.7*ones(1,3))
+    for icond = 1:4;
+        cond = condVec(icond);
+        plot(icond,PC(isubj,cond),'Color',colorMat(cond,:),'Marker','.','MarkerSize',18)
+    end
+    
+end
+
+meanPC = mean(PC);
+
+plot(1:4,meanPC(condVec),'k','LineWidth',3);
+for icond = 1:4;
+    cond = condVec(icond);
+    plot(icond,meanPC(cond),'Color',colorMat(cond,:),'Marker','.','MarkerSize',36)
+end
+
+defaultplot;
+set(gca,'XTick',[],'YTick',0.3:.1:.8)
+
+%% errorbar of PC across participants
+
+clear all
+subjidVec = {'1','2','3','4','5','6','7','8','9'};
+exptype = 'Delay';
+nSubj = length(subjidVec);
+
+for isubj = 1:nSubj;
+    subj = subjidVec{isubj};
+    
+    filepath = 'experiment_data/output_mat/';
+    load(sprintf('%sprocesseddata_ChangeLocalization_%s_subj%s.mat',filepath,exptype,subj));
+    
+    for icond = 1:4;
+        PC(isubj,icond) = sum(data{icond}.Rmat(:,1))/sum(data{icond}.Rmat(:));
+    end
+end
+
+meanPC = mean(PC);
+semPC = std(PC)./sqrt(nSubj);
+
+figure;
+axis([0.5 4.5 .4 .7])
+condVec = [1 4 3 2];
+colorMat = aspencolors(4,'passport');
+for icond = 1:4;
+    cond = condVec(icond);
+    hold on; 
+    %     bar(icond,meanPC(cond))
+    errorb(icond,meanPC(cond),semPC(cond),'Color',colorMat(cond,:))
+end
+defaultplot;
+set(gca,'XTick',[],'YTick',0.4:.1:.7)
+
+%% plot just high and low condition data
+clear all
+subjidVec = {'1','2','3','4','5','6','7','8','9'};
+plot_psychometricfunction(subjidVec,'Delay',[1 4]);
+axis([0 90 0 1])
+
+ax.XTick = [0 30 60 90];
+ax.XTickLabel = [0 30 60 90];
+ax.YTick = 0:.5:1;
+ax.FontSize = 14;
+%% plot psychometric functions of subjects according to getbestcontrast!
+
+clear all
+
+% subjnameVec = {'ALM','DR','MR','EN','EK','DC','JP','MP','TC'};
+subjnameVec = {'EK','DC','JP','MP','TC'};
+subjidVec = {'5','6','7','8','9'};
+nSubj = length(subjidVec);
+
+for isubj = 1:nSubj;
+    subjname = subjnameVec{isubj};
+    contrastVec(isubj) = calculate_bestcontrast(subjname);
+
+end
+
+figure;
+[B,I] = sort(contrastVec);
+for isubj = 1:nSubj;
+    subplot(1,5,isubj);
+    
+    subjid = subjidVec(I(isubj));
+    plot_psychometricfunction(subjid,'Delay',[1 4]);
 end
