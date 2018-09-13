@@ -48,7 +48,7 @@ stimType        = 'gabor';          % stimulus type
 fileName = ['Exp_ChangeLocalization_' exptype '_subj' num2str(subjid)];
 
 
-if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)   
+if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     
     % yes(1)/no(0)
     vmprior = 0;            % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
@@ -62,7 +62,7 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
     lineAtPres2 = 0;        % oriented line at presentation 2 (vs. a gabor or ellipse)
     fixationinITI =  0;     % if fixation cross shown during ITI
-%     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
+    %     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
     % breaks and feedback
     blocknum = 1;           % number of blocks ( 1 + number of breaks )
@@ -97,7 +97,7 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
     lineAtPres2 = 0;        % oriented line at presentation 2 (vs. a gabor or ellipse)
     fixationinITI =  0;     % if fixation cross shown during ITI
-%     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
+    %     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
     % breaks and feedback
     blocknum = 1;           % number of blocks ( 1 + number of breaks )
@@ -105,9 +105,9 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
     
     % figure out low contrast value
-    try 
+    try
         lowcontrastval = calculate_bestcontrast(subjid);
-    catch 
+    catch
         YN = input('Could not calculate low contrast value for subject. Continue with 0.3? Y/N: ','s');
         if strcmp(upper(YN),'Y');
             lowcontrastval = 0.1;
@@ -126,15 +126,51 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     f2 = length(pres1stimNum);
     
     reliabilityNum = [1 1 1 1; ...
-                      1 1 lowcontrastval lowcontrastval; ...
-                      1 1 lowcontrastval lowcontrastval; ...
-                      lowcontrastval*ones(1,4)]; % contrasts of gabors
-%     reliabilityNum = [ones(1,4); 1 1 .2 .2; .2*ones(1,4)]; % contrast for gabor
+        1 1 lowcontrastval lowcontrastval; ...
+        1 1 lowcontrastval lowcontrastval; ...
+        lowcontrastval*ones(1,4)]; % contrasts of gabors
+    %     reliabilityNum = [ones(1,4); 1 1 .2 .2; .2*ones(1,4)]; % contrast for gabor
     f3 = size(reliabilityNum,1);
     
     ISIdelayNum = [1];   % ISI delay time (sec)
     f4 = length(ISIdelayNum);
     
+elseif strcmp(exptype,'sausagestim')
+    
+    % info for current experiment
+    expName = ['Exp_ChangeDiscrim_' exptype '_subj' num2str(subjid)];
+    
+    % yes(1)/no(0)
+    gaussprior = 20;      % gaussian or stepwise
+    screenshot = 0;      % do you want a screenshot?
+    feedback = 1;        % do you want to give feedback on performance?
+    allStimInPres2 = 0;  % all stimuli to be in pres2 (vs.just target)?
+    directionChange = 1; % task clockwise/counterclockwise (vs. yes/no)?
+    respInPres2 = 1;     % does 2nd presentation stay up until S responds?
+    simultPres1 = 1;        % are all stimuli presented simultaneous in first presentation?
+    permLocInPres1 = 0;  % are stimuli locations in pres1 permuted?
+    
+    
+    % breaks and feedback
+    blocknum = 1;     % number of blocks ( 1 + number of breaks )
+    breakDuration = 20;   % duration of each break between blocks (sec)
+    feedbacktrial = []; % every feedbacktrialth trial, feedback will be given
+    
+    % experimental design
+    directionNum = [1]; % always changing
+    f1 = length(directionNum);
+    
+    setSizeNum = [1]; % stimulus set size
+    f2 = length(setSizeNum);
+    
+    % reliabilityName = ['low', 'medium', 'high'];
+    reliabilityNum = [0 pi/6 pi/2]; % ellipse eccentricity [.65 .97];%
+    f3 = length(reliabilityNum);
+    
+    ISIdelayNum = [0.981]; % [.5 1 2];   % ISI delay time (sec)
+    f4 = length(ISIdelayNum);
+    
+    pres1stimNum = 1;
 end
 
 
