@@ -5,14 +5,14 @@ plot(xx,betapdf(xx,1.3,4))
 
 %% gamma distribution
 
-Jbar = 35;
-tau = 95;
+Jbar = 0.64;
+tau = 262;
 samples = gamrnd(Jbar/tau,tau,[1,1e6]);
+% xmax = .001;
+% samples(samples > xmax) = [];
 % figure
-subplot(1,2,2)
 hist(samples,100)
 axis([0 200, 0 1e5]);
-
 
 %% % % % % % % % % % % % % % % % % % % % % % % % % % % %
 %           DATA RELATED
@@ -824,3 +824,56 @@ for isubj = 1:nSubj;
     subjid = subjidVec(I(isubj));
     plot_psychometricfunction(subjid,'Delay',[1 4]);
 end
+
+%% how many trials to get reasonable estimates on homogeneous conditions
+
+clear all
+% ====== GENERATE TRUE DATA ======
+% parameters
+model = 1;
+theta = [3 6 1 1e-5];
+nSamples = 1e4;
+nAngles = 18;
+
+% generate fake data just homogeneous condition
+X{1}.Nset1 = 0; X{1}.Nset2 = 4; X{1}.Cset = 2;
+X{2}.Nset1 = 4; X{2}.Nset2 = 0; X{2}.Cset = 1;
+for iCnd = 1:numel(X); X{iCnd}.Rmat = []; end
+[loglike,prmat,X] = AhyBCL_datalikeall(theta,X,model,nSamples);
+
+% generate noisy data based on this
+nTrials = 20;
+% for iX = 1:numel(X)
+iX = 1;
+    mat = binornd(nTrials,prmat{iX}(:,1));
+    mat = [mat nTrials-mat zeros(nAngles,1)];
+    X{iX}.Rmat = mat;
+    X{2}.Rmat = mat;
+% end
+
+% ====== ESTIMATE PARAMETERS =======
+runmax = 10;
+runlist = 1:10;
+[bfp, LLVec, completedruns] = fit_parameters(X,model,runlist,runmax,nSamples);
+bfp
+
+% get model prediction
+bfpbest = bfp(LLVec == max(LLVec),:);
+bfpbest = [bfpbest(1:2) log(bfpbest(3)) bfpbest(4)];
+[ll,prmat_predict,~] = AhyBCL_datalikeall(bfpbest,X,model,nSamples);
+
+% plot
+figure; hold on;
+plot(prmat{1}(:,1),'Color',[0 0 1])
+plot(prmat{2}(:,1), 'r')
+plot(prmat_predict{1}(:,1), 'Color',[.5 .5 1])
+plot(prmat_predict{2}(:,1), 'Color', [1 .5 .5])
+
+% this doesnt look like a good fit, so seeing if the predicted parameters
+% actually give a reasonalbe LL compared to true value
+% -- the results of this show that the actual log likelihood is much lower
+% for the true parameter value, which is comforting! now have to see why
+% parameters aren't being estimated correctly
+iX = 1;
+[loglike,~] = AhyBCL_datalike1(theta,X{iX}.Nset1,X{iX}.Nset2,X{iX}.Cset,X{iX}.Rmat,model,nSamples)
+[loglike,~] = AhyBCL_datalike1(bfpbest,X{iX}.Nset1,X{iX}.Nset2,X{iX}.Cset,X{iX}.Rmat,model,nSamples)

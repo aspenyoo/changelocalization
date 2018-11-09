@@ -1,5 +1,5 @@
-function [bfp, LLVec, completedruns] = fit_data_nosave(data,model,runlist,runmax,nSamples)
-%FIT_DATA_NOSAVE was made by aspen oct 31 2018 to try to investigate
+function [bfp, LLVec, completedruns] = fit_parameters(data,model,runlist,runmax,nSamples)
+%FIT_PARAMETERS was made by aspen oct 31 2018 to try to investigate
 %different aspects of model. same as fit_maximum_likelihood but outputs
 %varaibles instead of saving them to a file
 
@@ -19,10 +19,10 @@ end
 % load(sprintf('%sprocesseddata_ChangeLocalization_%s_subj%s.mat',filepath,exptype,subjid));
 
 % Set parameter bounds
-jbar_bounds = [0.0067,35];  % Hard bounds for JBAR1 and JBAR2
-jbar_pbounds = [0.0067,1];  % Plausible bounds for JBAR1 and JBAR2
-tau_bounds = [0.5,3e3];     % Hard bounds for TAU
-tau_pbounds = [35,3e3];     % Plausible bounds for TAU
+jbar_bounds = [0.0067 35];  % Hard bounds for JBAR1 and JBAR2
+jbar_pbounds = [0.5 10];  % Plausible bounds for JBAR1 and JBAR2
+tau_bounds = [1e-3 3e3];     % Hard bounds for TAU
+tau_pbounds = [0.5 30];     % Plausible bounds for TAU
 lapse_bounds = [1e-4 1];
 lapse_pbounds = [1e-4 0.2];
 
@@ -54,24 +54,17 @@ for iter = 1:numel(runlist)
     rng(runlist(iter));
     
     x0 = x0_list(runlist(iter),:);
-    [xbest,~,~,~] = ...
-        bads(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1)),x0,LB,UB,PLB,PUB,[],options);    
-    xbest = [exp(xbest(1:3)) xbest(4)];
-        
-    % Evaluate function with high precision
-    LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal);
+    [xbest,LL,~,~] = ...
+        bads(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1)),x0,LB,UB,PLB,PUB,[],options);
+%     xbest = [exp(xbest(1:3)) xbest(4)];
     
-    % save file
-    fileID = fopen(filename,permission);
-    A1 = [xbest LLbest runlist(iter)];
-    fprintf(fileID, formatSpec, A1);
-    fclose(fileID);
+    % Evaluate function with high precision
+%     LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal);
     
     bfp = [bfp; xbest];
-    LLVec = [LLVec; LLbest];
+    LLVec = [LLVec; LL];
     completedruns = [completedruns; runlist(iter)];
-
+    
 end
-
 
 end
