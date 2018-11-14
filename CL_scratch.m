@@ -831,36 +831,38 @@ clear all
 % ====== GENERATE TRUE DATA ======
 % parameters
 model = 1;
-theta = [3 6 1 1e-5];
+theta = [3 5 2 0.1];
 nSamples = 1e4;
-nAngles = 18;
+ds = (5:10:85)';
+% ds = (2.5:5:87.5)';
+nAngles = length(ds);
 
 % generate fake data just homogeneous condition
 X{1}.Nset1 = 0; X{1}.Nset2 = 4; X{1}.Cset = 2;
 X{2}.Nset1 = 4; X{2}.Nset2 = 0; X{2}.Cset = 1;
 for iCnd = 1:numel(X); X{iCnd}.Rmat = []; end
-[loglike,prmat,X] = AhyBCL_datalikeall(theta,X,model,nSamples);
+[loglike,prmat,X] = AhyBCL_datalikeall(theta,X,model,nSamples,ds);
 
 % generate noisy data based on this
 nTrials = 20;
-% for iX = 1:numel(X)
-iX = 1;
+for iX = 1:numel(X)
+% iX = 1;
     mat = binornd(nTrials,prmat{iX}(:,1));
     mat = [mat nTrials-mat zeros(nAngles,1)];
     X{iX}.Rmat = mat;
     X{2}.Rmat = mat;
-% end
+end
 
 % ====== ESTIMATE PARAMETERS =======
-runmax = 10;
-runlist = 1:10;
-[bfp, LLVec, completedruns] = fit_parameters(X,model,runlist,runmax,nSamples);
-bfp
+runmax = 50;
+runlist = 1:50;
+[bfp, LLVec, completedruns] = fit_parameters(X,model,runlist,runmax,nSamples,ds);
 
 % get model prediction
 bfpbest = bfp(LLVec == max(LLVec),:);
-bfpbest = [bfpbest(1:2) log(bfpbest(3)) bfpbest(4)];
-[ll,prmat_predict,~] = AhyBCL_datalikeall(bfpbest,X,model,nSamples);
+bfpbest = [exp(bfpbest(1:3)) bfpbest(4)];
+bfpbest
+[ll,prmat_predict,~] = AhyBCL_datalikeall(bfpbest,X,model,nSamples,ds);
 
 % plot
 figure; hold on;
@@ -874,6 +876,5 @@ plot(prmat_predict{2}(:,1), 'Color', [1 .5 .5])
 % -- the results of this show that the actual log likelihood is much lower
 % for the true parameter value, which is comforting! now have to see why
 % parameters aren't being estimated correctly
-iX = 1;
-[loglike,~] = AhyBCL_datalike1(theta,X{iX}.Nset1,X{iX}.Nset2,X{iX}.Cset,X{iX}.Rmat,model,nSamples)
-[loglike,~] = AhyBCL_datalike1(bfpbest,X{iX}.Nset1,X{iX}.Nset2,X{iX}.Cset,X{iX}.Rmat,model,nSamples)
+[loglike,~] = AhyBCL_datalike1(theta,X{iX}.Nset1,X{iX}.Nset2,X{iX}.Cset,X{iX}.Rmat,model,nSamples,ds)
+[loglike,~] = AhyBCL_datalike1(bfpbest,X{iX}.Nset1,X{iX}.Nset2,X{iX}.Cset,X{iX}.Rmat,model,nSamples,ds)

@@ -1,4 +1,4 @@
-function [bfp, LLVec, completedruns] = fit_parameters(data,model,runlist,runmax,nSamples)
+function [bfp, LLVec, completedruns] = fit_parameters(data,model,runlist,runmax,nSamples,ds)
 %FIT_PARAMETERS was made by aspen oct 31 2018 to try to investigate
 %different aspects of model. same as fit_maximum_likelihood but outputs
 %varaibles instead of saving them to a file
@@ -55,11 +55,11 @@ for iter = 1:numel(runlist)
     
     x0 = x0_list(runlist(iter),:);
     [xbest,LL,~,~] = ...
-        bads(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1)),x0,LB,UB,PLB,PUB,[],options);
+        bads(@(x) -AhyBCL_datalikeall([exp(x(1:3)) x(4)],data,model,nSamples(1),ds),x0,LB,UB,PLB,PUB,[],options);
 %     xbest = [exp(xbest(1:3)) xbest(4)];
     
     % Evaluate function with high precision
-%     LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal);
+%     LLbest = AhyBCL_datalikeall(xbest,data,model,nSamplesFinal,ds);
     
     bfp = [bfp; xbest];
     LLVec = [LLVec; LL];

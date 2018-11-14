@@ -1,4 +1,4 @@
-function [loglike,prmat,X] = AhyBCL_datalikeall(theta,X,model,Nsamples)
+function [loglike,prmat,X] = AhyBCL_datalikeall(theta,X,model,Nsamples,ds)
 %AHYBCL_DATALIKEALL Log likelihood for all conditions (AHY BCL experiment).
 %
 %   LOGLIKE = AHYBCL_DATALIKEALL(THETA,X,MODEL) computes the log likelihood 
@@ -41,7 +41,7 @@ for iCnd = 1:numel(X)
     Nset2 = X{iCnd}.Nset2;
     Cset = X{iCnd}.Cset;
     Rmat = X{iCnd}.Rmat;
-    [temp,prmat{iCnd}] = AhyBCL_datalike1(theta,Nset1,Nset2,Cset,Rmat,model,Nsamples);
+    [temp,prmat{iCnd}] = AhyBCL_datalike1(theta,Nset1,Nset2,Cset,Rmat,model,Nsamples,ds);
     if ~isempty(temp); ll(iCnd) = temp; end
 end
 

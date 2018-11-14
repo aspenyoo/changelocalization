@@ -10,7 +10,7 @@ function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, nSessions, i
 % ========================================================================
 if nargin < 3; sessionnum = []; end
 if nargin < 4; nTrialsPerCond = []; end
-if nargin < 5; nSessions = 3; end
+if nargin < 5; nSessions = 6; end
 if nargin < 6; isnewsession = 1; end % only relevant for first session errors
 if nargin < 7; ispractice = 0; end
 
@@ -18,15 +18,6 @@ commandwindow;
 
 % random number generator
 rng('shuffle');
-
-% opening screen
-screenNumber = max(Screen('Screens'));       % use external screen if exists
-[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
-windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
-Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-Screen('TextSize',windowPtr,20);
-Screen('TextFont',windowPtr,'Helvetica');
-HideCursor;
 
 % ==================================================================
 % PREFERENCES (should be changed to match experiment preferences)
