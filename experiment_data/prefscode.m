@@ -51,12 +51,12 @@ fileName = ['Exp_ChangeLocalization_' exptype '_subj' num2str(subjid)];
 if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     
     % yes(1)/no(0)
-    vmprior = 0;            % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
+    vmprior = 8.742;             % kappa of vm prior. 0 if uniform prior. (used to be sd of gauss prior)
     %             if ~(vmprior); nTrialsPerCond = 10; end % 10 per method of constant stimuli
     screenshot = 0;         % do you want a screenshot?
     feedback = 0;           % do you want to give feedback on performance?
     allStimInPres2 = 1;     % all stimuli to be in pres2 (vs.just target)?
-    directionChange = 0;    % task clockwise/counterclockwise (vs. yes/no)?
+%     directionChange = 0;    % task clockwise/counterclockwise (vs. yes/no)?
     respInPres2 = 1;        % does 2nd presentation stay up until S responds?
     stimPresent = 0;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?
@@ -64,18 +64,13 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     fixationinITI =  0;     % if fixation cross shown during ITI
     %     pres2contrast = 0;      % randomly change contrast of presentation 2 gabors
     
-    % breaks and feedback
-    blocknum = 1;           % number of blocks ( 1 + number of breaks )
-    breakDuration = 20;     % duration of each break between blocks (sec)
-    feedbacktrial = 24;     % every feedbacktrialth trial, feedback will be given
-    
     % experimental design
     deltaNum = [1]; %
     f1 = length(deltaNum);
     % if directionChange = 1, magnitude and direction of change
     % if directionChange = 0, should be 0 or 1 for yes/no change
     
-    pres1stimNum =[0 2 2 4]; % stimulus set size in first presentation
+    pres1stimNum =[0 2 2 2 2 4]; % stimulus set size in first presentation
     f2 = length(pres1stimNum);
     
     reliabilityNum = [ones(1,max(pres1stimNum))]; % contrast for gabor
@@ -84,6 +79,11 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     ISIdelayNum = [1];   % ISI delay time (sec)
     f4 = length(ISIdelayNum);
     
+    % breaks and feedback
+    blocknum = 1;           % number of blocks ( 1 + number of breaks )
+    breakDuration = 20;     % duration of each break between blocks (sec)
+    feedbacktrial = nTrialsPerCond*size(fullfact([f1 f2 f3 f4]),1);     % every feedbacktrialth trial, feedback will be given
+    
 elseif strcmp(exptype(end-7:end),'Contrast')
     
     % yes(1)/no(0)
@@ -91,7 +91,7 @@ elseif strcmp(exptype(end-7:end),'Contrast')
     screenshot = 0;         % do you want a screenshot?
     feedback = 0;           % do you want to give feedback on performance?
     allStimInPres2 = 1;     % all stimuli to be in pres2 (vs.just target)?
-    directionChange = 0;    % task clockwise/counterclockwise (vs. yes/no)?
+%     directionChange = 0;    % task clockwise/counterclockwise (vs. yes/no)?
     respInPres2 = 1;        % does 2nd presentation stay up until S responds?
     stimPresent = 1;        % are all stimuli presented simultaneous in first presentation?
     permLocInPres1 = 1;     % are stimuli locations in pres1 permuted?

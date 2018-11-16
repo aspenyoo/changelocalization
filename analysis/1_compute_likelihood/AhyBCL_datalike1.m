@@ -93,8 +93,14 @@ end
 % Decision rule
 switch model(1)
     case 1  % Bayesian model
-        d1 = bsxfun(@plus,-bsxfun(@times,kappa1,cos(x1)),log(besseli(0,kappa1,1))+kappa1);
-        d2 = bsxfun(@plus,-bsxfun(@times,kappa2,cos(x2)),log(besseli(0,kappa2,1))+kappa2);
+%         d1 = bsxfun(@plus,-bsxfun(@times,kappa1,cos(x1)),log(besseli(0,kappa1,1))+kappa1);
+%         d2 = bsxfun(@plus,-bsxfun(@times,kappa2,cos(x2)),log(besseli(0,kappa2,1))+kappa2);
+        kappap1 = sqrt(kappa0^2 + kappa1^2 + 2*kappa0*kappa1*cos(x1));
+        kappap2 = sqrt(kappa0^2 + kappa2^2 + 2*kappa0*kappa2*cos(x2));
+        d1 = bsxfun(@plus,-bsxfun(@times,kappa1,cos(x1)),log(besseli(0,kappa1,1))+kappa1)...
+            +log(besseli(0,kappap1,1))+kappap1-log(besseli(0,kappa1,1))-kappa1;
+        d2 = bsxfun(@plus,-bsxfun(@times,kappa2,cos(x2)),log(besseli(0,kappa2,1))+kappa2)...
+            +log(besseli(0,kappap2,1))+kappap2-log(besseli(0,kappa2,1))-kappa2;
         
     case 2  % Non-Bayesian max rule
         d1 = abs(x1);

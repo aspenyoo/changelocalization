@@ -19,15 +19,6 @@ commandwindow;
 % random number generator
 rng('shuffle');
 
-% opening screen
-screenNumber = max(Screen('Screens'));       % use external screen if exists
-[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
-windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
-Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-Screen('TextSize',windowPtr,20);
-Screen('TextFont',windowPtr,'Helvetica');
-HideCursor;
-
 % ==================================================================
 % PREFERENCES (should be changed to match experiment preferences)
 % ==================================================================
@@ -63,9 +54,11 @@ prefs.nCond = size(prefs.design,1);
 % skipping sync tests
 % Screen('Preference', 'SkipSyncTests', 1);
 
-% screen info (visual)
-screenNumber =  max(Screen('Screens'));       % use external screen if exists
-[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of display
+% % screen info (visual)
+screenNumber = max(Screen('Screens'));       % use external screen if exists
+[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
+windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
+
 screenResolution = [w h];                 % screen resolution
 screenCenter = screenResolution/2;       % screen center
 screenAngle = atand((prefs.screenHeight/2) / screenDistance) ; % total visual angle of screen (height)
@@ -75,12 +68,9 @@ stimLength = round(sqrt(prefs.stimArea));
 prefs.fixLength = round(prefs.fixLength*screen_ppd);
 
 % open screen
-if isempty(sessionnum)
-    windowPtr = Screen('OpenWindow',screenNumber,prefs.grey,[],32,2);
-else
-    windowPtr = 10;
-end
 Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+Screen('TextSize',windowPtr,20);
+Screen('TextFont',windowPtr,'Helvetica');
 HideCursor;
 
 % ========================================================================
@@ -122,7 +112,7 @@ catch
     prefs.nTrials = size(designMat,1);
     prefs.ncurrTrials = round(prefs.nTrials/nSessions);
     designMat = designMat(randperm(prefs.nTrials),:);
-    designMat = [designMat nan(prefs.nTrials,2)];
+%     designMat = [designMat nan(prefs.nTrials,2)];
     nPC = floor(prefs.nTrials/prefs.feedbacktrial);
     
     % names of variables in designMat
@@ -131,7 +121,7 @@ catch
     names.designMat{3+setsize} = 'delay time';
     names.designMat{4+setsize} = 'condition number'; names.designMat{5+setsize} = 'response';
     names.designMat{6+setsize} = 'Correct?'; names.designMat{7+setsize} = 'RT';
-    names.designMat{8+setsize} = 'confidence'; names.designMat{9+setsize} = 'RT';
+%     names.designMat{8+setsize} = 'confidence'; names.designMat{9+setsize} = 'RT';
     
     switch prefs.stimType
         case 'ellipse'
@@ -492,14 +482,14 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
     % calculating correct resp
     designMat(itrial,6+setsize) = pressedKey == locChange;
     
-    % confidence judgment
-    textx = screenCenter(1) - 3*screen_ppd;
-    texty = screenCenter(2) - screen_ppd;
-    Screen('TextSize',windowPtr,24);
-    Screen('TextFont',windowPtr,'Helvetica');
-    Screen('DrawText',windowPtr,'Confidence?',textx,texty,[255 255 255]);
-    Screen('Flip', windowPtr);
-    [designMat(itrial,8+setsize), designMat(itrial,9+setsize)] = waitForKeys(prefs.keys2,GetSecs());
+%     % confidence judgment
+%     textx = screenCenter(1) - 3*screen_ppd;
+%     texty = screenCenter(2) - screen_ppd;
+%     Screen('TextSize',windowPtr,24);
+%     Screen('TextFont',windowPtr,'Helvetica');
+%     Screen('DrawText',windowPtr,'Confidence?',textx,texty,[255 255 255]);
+%     Screen('Flip', windowPtr);
+%     [designMat(itrial,8+setsize), designMat(itrial,9+setsize)] = waitForKeys(prefs.keys2,GetSecs());
     
     % ITI
     if (prefs.feedback) % if sound feedback
