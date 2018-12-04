@@ -34,9 +34,11 @@ else
 end
 
 % response keys
-% prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('esc')];
-% prefs.keysNum = [9 7 1 3 0];
-prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('q')];
+if (ismac)
+    prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('escape')];
+else
+    prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('esc')];
+end
 prefs.keysNum = [9 7 1 3 0];
 
 prefs.keys2 = [KbName('a') KbName('s') KbName('d') KbName('f')];
@@ -245,7 +247,7 @@ if (prefs.lineAtPres2)
     prefs.lineWidth = 3; % pixels
     prefs.lineLength = stimLength;
     lineCoordinates = nan(2,numDegrees);
-    for j = 1:numDegrees;
+    for j = 1:numDegrees
         [lineCoordinates(1,j), lineCoordinates(2,j)] = lineCoord(prefs.lineLength,j);
     end
 end
@@ -270,7 +272,7 @@ end
 
 % run a trial
 % -------------------------------------------------------------------------
-for itrial = trial:prefs.ncurrTrials*sessionnum;
+for itrial = trial:prefs.ncurrTrials*sessionnum
     
     % setting values for current trial
     %     condition = designMat(itrial,5); % current condition
@@ -301,7 +303,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength.*1.5); % make slightly longer fixation cross
         t0 = GetSecs();
         Screen('flip',windowPtr); % tic;
-        while (GetSecs()-t0)<prefs.initTrialDur;
+        while (GetSecs()-t0)<prefs.initTrialDur
             % do nothing
         end
     end
@@ -312,7 +314,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
     t0 = GetSecs();
     % inittirladur = toc
     Screen('flip',windowPtr); % tic;
-    while (GetSecs()-t0)<prefs.fix1Dur;
+    while (GetSecs()-t0)<prefs.fix1Dur
         % do nothing
     end
     
@@ -330,7 +332,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         % fix1 = toc
         Screen('flip',windowPtr); % tic;
         t0 = GetSecs();
-        while (GetSecs()-t0) < (prefs.pres1Dur + prefs.pres1ISIDur);
+        while (GetSecs()-t0) < (prefs.pres1Dur + prefs.pres1ISIDur)
             % do nothing
         end
     end
@@ -346,7 +348,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
     stimuliMat(itrial,2*setsize+1:3*setsize) = x_pos(k);
     stimuliMat(itrial,3*setsize+1:4*setsize) = y_pos(k);
     
-    for istim = 1:setsize;
+    for istim = 1:setsize
         switch prefs.stimType
             case 'ellipse'
                 srcrect = [0 0 squeeze(StimSizes(uniqueReliabilities == designMat(itrial,2+istim),pres1orientations(k(istim)),:))'];
@@ -361,7 +363,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
                 end
         end
         if ~prefs.stimPresent % sequential presentation
-            if sum(istim == stimPerInterval); % flip window when the proper number of stimuli are on the screen.
+            if sum(istim == stimPerInterval) % flip window when the proper number of stimuli are on the screen.
                 if (prefs.stimecc)
                     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
                 end
@@ -369,7 +371,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
                 Screen('flip',windowPtr);
                 % tic;
                 t0 = GetSecs();
-                while (GetSecs()-t0) < prefs.pres1Dur;
+                while (GetSecs()-t0) < prefs.pres1Dur
                     % do nothing
                 end
                 
@@ -381,12 +383,12 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
                 % tic;
                 t0 = GetSecs();
                 
-                if (istim == setsize); % if it's last interval for first presentation
-                    while (GetSecs()-t0) < ISI2delay; % ISI between first and second presentation intervals
+                if (istim == setsize) % if it's last interval for first presentation
+                    while (GetSecs()-t0) < ISI2delay % ISI between first and second presentation intervals
                         % do nothing
                     end
                 else % if there is going to be another interval for first presentation
-                    while (GetSecs()-t0) < prefs.pres1ISIDur; % ISI between first presentation intervals
+                    while (GetSecs()-t0) < prefs.pres1ISIDur % ISI between first presentation intervals
                         % do nothing
                     end
                 end
@@ -401,7 +403,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         Screen('flip',windowPtr);
         % tic
         t0 = GetSecs();
-        while (GetSecs()-t0) < prefs.pres1Dur;
+        while (GetSecs()-t0) < prefs.pres1Dur
             % do nothing
         end
         
@@ -413,7 +415,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         Screen('flip',windowPtr);
         % tic;
         t0 = GetSecs();
-        while (GetSecs()-t0) < ISI2delay; % ISI between first and second presentation intervals
+        while (GetSecs()-t0) < ISI2delay % ISI between first and second presentation intervals
             % do nothing
         end
     end
@@ -426,7 +428,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         % blank = toc
         Screen('flip',windowPtr); % tic;
         t0 = GetSecs();
-        while (GetSecs()-t0) < (prefs.pres1Dur + prefs.pres1ISIDur);
+        while (GetSecs()-t0) < (prefs.pres1Dur + prefs.pres1ISIDur)
             % do nothing
         end
     end
@@ -471,7 +473,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
     
     % check response
     [pressedKey, designMat(itrial,7+setsize)] = waitForKeys(prefs.keys,GetSecs());
-    if pressedKey == length(prefs.keys);
+    if pressedKey == length(prefs.keys)
         sca;
         ShowCursor;
         fclose('all');
@@ -568,7 +570,7 @@ for itrial = trial:prefs.ncurrTrials*sessionnum;
         WaitSecs(prefs.fix1Dur);
     end
     
-    if (GetSecs() - expTime) > maxexpTime;
+    if (GetSecs() - expTime) > maxexpTime
         save(prefs.fidmat)
         break;
     end
@@ -597,8 +599,8 @@ save(prefs.fidmat)
         pressedKey=0;
         while (1)
             
-            [keyIsDown, secs, keyCode] = KbCheck();
-            if  any(keyCode(keys))%(sum(keyCode(keys))==1)
+            [keyIsDown, secs, keyCode] = KbCheck(-3);
+            if  any(keyCode(keys))
                 RT = GetSecs - tstart;
                 pressedKey = find(keyCode(keys));
                 break;
@@ -611,10 +613,10 @@ save(prefs.fidmat)
     function keyCode = waitForKey
         keyCode = ones(1,256);
         while sum(keyCode(1:254))>0
-            [keyIsDown,secs,keyCode] = KbCheck;
+            [keyIsDown,secs,keyCode] = KbCheck(-3);
         end
         while sum(keyCode(1:254))==0
-            [keyIsDown,secs,keyCode] = KbCheck;
+            [keyIsDown,secs,keyCode] = KbCheck(-3);
         end
         keyCode = min(find(keyCode==1));
     end
