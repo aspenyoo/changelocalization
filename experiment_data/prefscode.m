@@ -82,7 +82,7 @@ if strcmp(exptype(end-4:end),'Delay'); % detection task (yes/no)
     % breaks and feedback
     blocknum = 1;           % number of blocks ( 1 + number of breaks )
     breakDuration = 20;     % duration of each break between blocks (sec)
-    feedbacktrial = nTrialsPerCond*size(fullfact([f1 f2 f3 f4]),1);     % every feedbacktrialth trial, feedback will be given
+    feedbacktrial = 50;%nTrialsPerCond*size(fullfact([f1 f2 f3 f4]),1);     % every feedbacktrialth trial, feedback will be given
     
 elseif strcmp(exptype(end-7:end),'Contrast')
     
