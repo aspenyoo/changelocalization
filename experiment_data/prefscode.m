@@ -2,7 +2,7 @@ function prefs = prefscode(exptype, subjid, sessionnum, nTrialsPerCond)
 
 if nargin < 2; subjid = []; end
 if nargin < 3; sessionnum = 0; end
-if nargin < 4; nTrialsPerCond = 10; end
+if nargin < 4; nTrialsPerCond = 60; end
 
 if nargin < 1; exptype = input('Delay/Contrast: ','s');end
 if isempty(subjid); subjid = input('enter subject ID: ', 's'); end

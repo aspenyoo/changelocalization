@@ -11,7 +11,7 @@ function Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond, nSessions, isnewsessi
 exptype = 'Delay';
 if nargin < 2; sessionnum = []; end
 if nargin < 3; nTrialsPerCond = []; end
-if nargin < 4; nSessions = 3; end
+if nargin < 4; nSessions = 20; end
 if nargin < 5; isnewsession = 1; end % only relevant for first session errors
 if nargin < 6; ispractice = 0; end
 
@@ -58,9 +58,9 @@ prefs.nCond = size(prefs.design,1);
 % Screen('Preference', 'SkipSyncTests', 1);
 
 % % screen info (visual)
-screenNumber = max(Screen('Screens'));       % use external screen if exists
-[w, h] = Screen('WindowSize', screenNumber);  % screen resolution of smaller display
-windowPtr = Screen('OpenWindow',screenNumber,128*ones(1,3),[],32,2);
+% screenNumber = max(Screen('Screens'));       % use external screen if exists
+[w, h] = Screen('WindowSize', max(Screen('Screens')));  % screen resolution of smaller display
+windowPtr = Screen('OpenWindow',max(Screen('Screens')),128*ones(1,3),[],32,2);
 
 screenResolution = [w h];                 % screen resolution
 screenCenter = screenResolution/2;       % screen center
