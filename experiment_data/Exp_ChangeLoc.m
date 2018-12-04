@@ -1,4 +1,4 @@
-function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, nSessions, isnewsession, ispractice)
+function Exp_ChangeLoc(subjid, sessionnum, nTrialsPerCond, nSessions, isnewsession, ispractice)
 % runs 2AFC experiment: orientation change detection task.
 %
 % STRUCT EXPLANATIONS
@@ -8,11 +8,12 @@ function Exp_ChangeLoc(subjid, exptype, sessionnum, nTrialsPerCond, nSessions, i
 % ========================================================================
 % SETTING THINGS UP (changing this section is usually unnecessary)
 % ========================================================================
-if nargin < 3; sessionnum = []; end
-if nargin < 4; nTrialsPerCond = []; end
-if nargin < 5; nSessions = 3; end
-if nargin < 6; isnewsession = 1; end % only relevant for first session errors
-if nargin < 7; ispractice = 0; end
+exptype = 'Delay';
+if nargin < 2; sessionnum = []; end
+if nargin < 3; nTrialsPerCond = []; end
+if nargin < 4; nSessions = 3; end
+if nargin < 5; isnewsession = 1; end % only relevant for first session errors
+if nargin < 6; ispractice = 0; end
 
 commandwindow;
 
@@ -35,7 +36,7 @@ end
 % response keys
 % prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('esc')];
 % prefs.keysNum = [9 7 1 3 0];
-prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('esc')];
+prefs.keys = [KbName('9') KbName('7') KbName('1') KbName('3') KbName('q')];
 prefs.keysNum = [9 7 1 3 0];
 
 prefs.keys2 = [KbName('a') KbName('s') KbName('d') KbName('f')];
