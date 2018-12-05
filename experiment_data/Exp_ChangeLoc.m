@@ -20,13 +20,13 @@ commandwindow;
 
 % random number generator
 subjid = upper(subjid);
-rng(sprintf('%d',subjid)); % rng from subjid, for reproduceability
+rng(str2num(sprintf('%d',subjid))); % rng from subjid, for reproduceability
 
 % ==================================================================
 % PREFERENCES (should be changed to match experiment preferences)
 % ==================================================================
 
-screenDistance = 40;                      % distance between observer and screen (in cm)
+screenDistance = 56;                      % distance between observer and screen (in cm)
 
 % importing preferences for simultaneous/sequential experiment
 if (ispractice)
@@ -73,7 +73,7 @@ prefs.fixLength = round(prefs.fixLength*screen_ppd);
 
 % open screen
 Screen(windowPtr,'BlendFunction',GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-Screen('TextSize',windowPtr,20);
+Screen('TextSize',windowPtr,36);
 Screen('TextFont',windowPtr,'Helvetica');
 HideCursor;
 
@@ -170,7 +170,7 @@ catch
     % initial stimulus orientations
     stimuliMat(:,setsize+1:2*setsize) = round(180*rand(prefs.nTrials,setsize));
      
-    progPC = [];
+    progPC = nan(1,nBlocks);
 end
 % figure out what trial you are on
 trial = find(isnan(designMat(:,end)),1,'first');
@@ -242,7 +242,7 @@ textx = w/2-300;
 if (blocknum)
     % ====== DETECTION INFO SCREEN =======
     texty = screenCenter(2) - 200;
-    Screen('TextSize',windowPtr,20);
+    Screen('TextSize',windowPtr,36);
     Screen('TextFont',windowPtr,'Helvetica');
     Screen('DrawText',windowPtr,'Indicate which orientation changed.',textx,texty,[255 255 255]);
     Screen('Flip', windowPtr);
@@ -479,7 +479,7 @@ for itrial = trial:prefs.ncurrTrials*blocknum
     if (prefs.fixationinITI); drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength); end
     Screen('flip',windowPtr); tic
     t0 = GetSecs();
-    while (GetSecs()-t0)<prefs.ITIDur;
+    while (GetSecs()-t0)<prefs.ITIDur
         % do nothing
     end
     % ITI = toc
@@ -490,11 +490,12 @@ end
 
 % final screen
 nTrialsPerBlock = size(designMat,1)/nBlocks;
-progPC = [progPC round(100*mean(designMat((nTrialsPerBlock*(blocknum-1)+1):(nTrialsPerBlock*blocknum),6+setsize)))];
+progPC(blocknum) = round(100*mean(designMat((nTrialsPerBlock*(blocknum-1)+1):(nTrialsPerBlock*blocknum),6+setsize)));
+% progPC = [progPC round(100*mean(designMat((nTrialsPerBlock*(blocknum-1)+1):(nTrialsPerBlock*blocknum),6+setsize)))];
 %             progPC = mean(designMat(1:i,7));
-Screen('TextSize',windowPtr,20);
+Screen('TextSize',windowPtr,36);
 Screen('fillRect',windowPtr,prefs.bgColor);
-Screen('DrawText',windowPtr,sprintf('End of block %d. You earned %02.f points!',blocknum, progPC(end)),250,screenCenter(2)-80,[255 255 255]);
+Screen('DrawText',windowPtr,sprintf('End of block %d. You earned %02.f points!',blocknum, max([progPC(blocknum)-25 0])),650,screenCenter(2)-140,[255 255 255]);
 
 % GRAPH OF PROGRESS
 graphwidth = round(w/3); % half of graph width
@@ -502,16 +503,17 @@ graphheight = round(h/5); % half of graph height
 origin = [w/2-graphwidth/2 h/2+graphheight];
 Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1)+graphwidth,origin(2)); % x-axis
 Screen('DrawLine',windowPtr,255*ones(1,3),origin(1), origin(2),origin(1),origin(2)-graphheight); % y-axis
-Screen('TextSize',windowPtr,12);
-Screen('DrawText',windowPtr,'points per block',w/2-50,origin(2)+15,[255 255 255]); % xlabel
+Screen('TextSize',windowPtr,24);
+Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
 
 % draw lines to make graph
-pc = (progPC./75 - 1/3)*graphheight; % rescaling PC to size of graph
+pc = max([progPC(1:blocknum); 25*ones(1,blocknum)],[],1);
+pc = (pc./75 - 1/3)*graphheight; % rescaling PC to size of graph
 dx = graphwidth./nBlocks; % equally spaced out to fill size of graph at end of exp.
 og = origin;
 dc = nan(2,length(pc));
 dc(:,1) = [og(1),og(2)-pc(1)];
-for ipc = 2:length(pc); % draw the lines
+for ipc = 2:length(pc) % draw the lines
     dc(:,ipc) = [og(1)+dx og(2)-pc(ipc)];
     Screen('DrawLine',windowPtr,255*ones(1,3),dc(1,ipc-1),dc(2,ipc-1),dc(1,ipc),dc(2,ipc)); % y-axis
     og(1) = og(1) + dx;
