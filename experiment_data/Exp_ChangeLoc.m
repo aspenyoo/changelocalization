@@ -288,6 +288,26 @@ for itrial = trial:prefs.ncurrTrials*blocknum
         end
     end
     
+    % ITI
+    if (prefs.feedback) % if sound feedback
+        if (designMat(itrial,6+setsize))
+            beep = MakeBeep(1200,.2);
+        else
+            beep = MakeBeep(500,.2);
+        end
+        Snd('Open');
+        Snd('Play',beep);
+    end
+    
+    Screen('fillRect',windowPtr,prefs.bgColor);
+    if (prefs.fixationinITI); drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength); end
+    Screen('flip',windowPtr); tic
+    t0 = GetSecs();
+    while (GetSecs()-t0)<prefs.ITIDur
+        % do nothing
+    end
+    % ITI = toc
+    
     % blank fixation screen
     Screen('fillRect',windowPtr,prefs.bgColor);
     drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength);
@@ -463,26 +483,6 @@ for itrial = trial:prefs.ncurrTrials*blocknum
     
     % calculating correct resp
     designMat(itrial,6+setsize) = pressedKey == locChange;
-
-    % ITI
-    if (prefs.feedback) % if sound feedback
-        if (designMat(itrial,6+setsize))
-            beep = MakeBeep(1200,.2);
-        else
-            beep = MakeBeep(500,.2);
-        end
-        Snd('Open');
-        Snd('Play',beep);
-    end
-    
-    Screen('fillRect',windowPtr,prefs.bgColor);
-    if (prefs.fixationinITI); drawfixation(windowPtr,screenCenter(1),screenCenter(2),prefs.fixColor,prefs.fixLength); end
-    Screen('flip',windowPtr); tic
-    t0 = GetSecs();
-    while (GetSecs()-t0)<prefs.ITIDur
-        % do nothing
-    end
-    % ITI = toc
     
     save(prefs.fidmat)
     
