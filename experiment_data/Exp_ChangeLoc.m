@@ -507,7 +507,7 @@ Screen('TextSize',windowPtr,24);
 Screen('DrawText',windowPtr,'points per block',w/2-60,origin(2)+15,[255 255 255]); % xlabel
 
 % draw lines to make graph
-pc = max([progPC(1:blocknum); 25*ones(1,blocknum)],[],1);
+pc = max(progPC(1:blocknum),25);
 pc = (pc./75 - 1/3)*graphheight; % rescaling PC to size of graph
 dx = graphwidth./nBlocks; % equally spaced out to fill size of graph at end of exp.
 og = origin;
