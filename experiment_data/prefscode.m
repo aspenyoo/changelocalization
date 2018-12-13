@@ -25,16 +25,16 @@ black                 = 0;
 % experiment timing (sec)
 initTrialDur = 0;     % larger fixation cross that initializes
 fix1Dur = 0.5;          % fixation screen in the beginning
-pres1Dur = 0.1;         % presentation 1
-pres1ISIDur = 2;    % inter-stimulus interval w/in pres1 (only for seq)
+pres1Dur = 0.15;         % presentation 1
+pres1ISIDur = 3;    % inter-stimulus interval w/in pres1 (only for seq)
 pres2Dur = .100;        % will not exist when respInPres2 == 1
 ITIDur = 0.5;           % inter-trial interval
 
 % display settings
-screenHeight    = 30.5;             % in cm (Dell@T115A: ~48cm; Dell@T101C: ~40 cm)
+screenHeight    = 30;               % in cm (participant screen in curtislab)
 bgColor         = grey;             % background color
 stimColor       = lightgrey;        % stimulus color
-fixLength       = 0.15;              % fixation cross length (dva)
+fixLength       = 0.15;             % fixation cross length (dva)
 fixColor        = black;            % fixation cross color
 jitter          = 0.5;              % amount of x/y-jitter (dva)
 stimecc         = 5;                % stimulus eccentricity (dva)
