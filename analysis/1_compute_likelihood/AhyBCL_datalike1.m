@@ -39,9 +39,11 @@ function [loglike,prmat] = AhyBCL_datalike1(theta,Nset1,Nset2,Cset,Rmat,model,Ns
 
 if nargin < 7 || isempty(Nsamples); Nsamples = 1e4; end
 % if nargin < 8 || isempty(ds); ds = (5:5:90)'; end
-if nargin < 8 || isempty(ds); ds = (2.5:5:87.5)'; end
+% if nargin < 8 || isempty(ds); ds = (2.5:5:87.5)'; end
 
 ds = ds(:)/90*pi;               % Convert from [-90,90] deg to [-pi,pi]
+prefs = prefscode('Delay','xxx');
+kappa0 = prefs.vmprior;
 
 Nstim = size(ds,1);             % Number of stimuli types
 
@@ -95,8 +97,8 @@ switch model(1)
     case 1  % Bayesian model
 %         d1 = bsxfun(@plus,-bsxfun(@times,kappa1,cos(x1)),log(besseli(0,kappa1,1))+kappa1);
 %         d2 = bsxfun(@plus,-bsxfun(@times,kappa2,cos(x2)),log(besseli(0,kappa2,1))+kappa2);
-        kappap1 = sqrt(kappa0^2 + kappa1^2 + 2*kappa0*kappa1*cos(x1));
-        kappap2 = sqrt(kappa0^2 + kappa2^2 + 2*kappa0*kappa2*cos(x2));
+        kappap1 = sqrt(kappa0^2 + kappa1.^2 + 2*kappa0.*kappa1.*cos(x1)); % kappa for low-reliability conditions
+        kappap2 = sqrt(kappa0^2 + kappa2.^2 + 2*kappa0.*kappa2.*cos(x2)); % kappa for high-reliability conditions
         d1 = bsxfun(@plus,-bsxfun(@times,kappa1,cos(x1)),log(besseli(0,kappa1,1))+kappa1)...
             +log(besseli(0,kappap1,1))+kappap1-log(besseli(0,kappa1,1))-kappa1;
         d2 = bsxfun(@plus,-bsxfun(@times,kappa2,cos(x2)),log(besseli(0,kappa2,1))+kappa2)...
@@ -148,6 +150,7 @@ else
 end
 
 end
+
 
 %--------------------------------------------------------------------------
 function [x,kappa] = drawnoisy(Jbar,tau,Nstim,Nsamples,Nset,change,ds)
